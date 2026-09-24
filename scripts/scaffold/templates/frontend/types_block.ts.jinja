@@ -1,0 +1,32 @@
+// << S >> (recurso generado)
+export interface << S >> {
+  id: number;
+{% for f in fields %}
+  << tm.ts_interface_line(f) >>
+{% endfor %}
+{% if has_owner %}
+  owner_id: number | null;
+{% endif %}
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Create<< S >>DTO {
+{% for f in fields %}
+  << tm.ts_create_line(f) >>
+{% endfor %}
+}
+
+export interface Update<< S >>DTO {
+{% for f in fields %}
+  << f.name >>?: << tm.ts_type(f) >>;
+{% endfor %}
+}
+
+export interface Get<< PluralPascal >>Params {
+  page?: number;
+  size?: number;
+{% for f in filter_fields %}
+  << f.name >>?: << tm.ts_type(f) >>;
+{% endfor %}
+}

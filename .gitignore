@@ -1,0 +1,102 @@
+# =====================
+# Python / Backend
+# =====================
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+
+# Virtual environments
+backend/env/
+backend/venv/
+backend/.venv/
+env/
+venv/
+.venv/
+
+# Environment variables (contain credentials)
+backend/.env
+.env
+*.env
+!*.env.example
+
+# Pytest / coverage
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# mypy / type checkers
+.mypy_cache/
+.dmypy.json
+
+# =====================
+# Alembic
+# =====================
+# Las migraciones SÍ se incluyen en el repo (no ignorar alembic/versions/)
+
+# =====================
+# Node.js / Frontend
+# =====================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# =====================
+# Base de datos
+# =====================
+*.db
+*.sqlite
+*.sqlite3
+
+# =====================
+# IDEs y editores
+# =====================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =====================
+# Sistema operativo
+# =====================
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# =====================
+# Logs y temporales
+# =====================
+*.log
+logs/
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Archivos de debug
+*_debug.py
+test_config.py
+test_db_connection.py
+test_simple_connection.py
+
+#archivos de claude locales
+.claude
+*.xl*
+docs/

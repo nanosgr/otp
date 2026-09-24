@@ -1,0 +1,47 @@
+# ---------------------------------------------------------------------------
+# << S >> — recurso generado por scripts/scaffold_resource.py
+# ---------------------------------------------------------------------------
+
+class << S >>Base(SQLModel):
+{% for f in fields %}
+    << tm.model_base_line(f) >>
+{% endfor %}
+
+
+class << S >>(<< S >>Base, table=True):
+    __tablename__ = "<< plural >>"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+{% if has_owner %}
+    owner_id: Optional[int] = Field(
+        default=None,
+        sa_column=Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+    )
+{% endif %}
+    created_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), server_default=func.now()),
+    )
+    updated_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), onupdate=func.now(), nullable=True),
+    )
+
+
+class << S >>Create(<< S >>Base):
+    pass
+
+
+class << S >>Read(<< S >>Base):
+    id: int
+{% if has_owner %}
+    owner_id: Optional[int] = None
+{% endif %}
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class << S >>Update(SQLModel):
+{% for f in fields %}
+    << tm.dto_update_line(f) >>
+{% endfor %}

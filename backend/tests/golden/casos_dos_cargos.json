@@ -1,0 +1,647 @@
+{
+ "rango": {
+  "desde": "2022-07-01",
+  "hasta": "2024-12-31"
+ },
+ "fuente": "BASE DE CALCULOS PENSION 2 CARGOS.xlsx",
+ "casos": [
+  {
+   "nombre": "dos_cargos_60_40_clase16_y_clase12",
+   "cargos": [
+    {
+     "secuencia": 1,
+     "porcentaje_secuencia": 60,
+     "clase": 16,
+     "responsabilidad_jerarquica_porcentaje": 81.01,
+     "titulo": "grado",
+     "riesgo_especial": true,
+     "zona_porcentaje": 10,
+     "zona_clase": 16,
+     "anios_antiguedad": 30,
+     "adicional_seguridad": true,
+     "porcentaje_retiro": 100
+    },
+    {
+     "secuencia": 2,
+     "porcentaje_secuencia": 40,
+     "clase": 12,
+     "titulo": "ninguno",
+     "titulo_pregrado_nivel": 1,
+     "anios_antiguedad": 20,
+     "cuerpo_apoyo_porcentaje": 5,
+     "adicional_seguridad": false
+    }
+   ],
+   "beneficiario": {
+    "parentesco": "conyuge",
+    "porcentaje": 100
+   },
+   "anticipo": 0,
+   "esperado": {
+    "tramos": [
+     {
+      "fila": 75,
+      "desde": "2022-07-01",
+      "meses": 1,
+      "nominal": 122702.802589438,
+      "total": 122702.802589438
+     },
+     {
+      "fila": 76,
+      "desde": "2022-08-01",
+      "meses": 1,
+      "nominal": 137940.16072994,
+      "total": 137940.16072994
+     },
+     {
+      "fila": 77,
+      "desde": "2022-09-01",
+      "meses": 1,
+      "nominal": 144712.284096049,
+      "total": 144712.284096049
+     },
+     {
+      "fila": 78,
+      "desde": "2022-10-01",
+      "meses": 1,
+      "nominal": 152451.870535992,
+      "total": 152451.870535992
+     },
+     {
+      "fila": 79,
+      "desde": "2022-11-01",
+      "meses": 1,
+      "nominal": 159223.990967146,
+      "total": 159223.990967146
+     },
+     {
+      "fila": 80,
+      "desde": "2022-12-01",
+      "meses": 1,
+      "nominal": 182108.835342724,
+      "total": 182108.835342724
+     },
+     {
+      "fila": 82,
+      "desde": "2023-01-01",
+      "meses": 1,
+      "nominal": 190944.21223407,
+      "total": 190944.21223407
+     },
+     {
+      "fila": 83,
+      "desde": "2023-02-01",
+      "meses": 1,
+      "nominal": 199779.671999865,
+      "total": 199779.671999865
+     },
+     {
+      "fila": 84,
+      "desde": "2023-03-01",
+      "meses": 1,
+      "nominal": 217450.526336489,
+      "total": 217450.526336489
+     },
+     {
+      "fila": 85,
+      "desde": "2023-04-01",
+      "meses": 1,
+      "nominal": 232380.464381898,
+      "total": 232380.464381898
+     },
+     {
+      "fila": 86,
+      "desde": "2023-05-01",
+      "meses": 1,
+      "nominal": 254171.43181247,
+      "total": 254171.43181247
+     },
+     {
+      "fila": 87,
+      "desde": "2023-06-01",
+      "meses": 1,
+      "nominal": 273236.947211154,
+      "total": 273236.947211154
+     },
+     {
+      "fila": 89,
+      "desde": "2023-07-01",
+      "meses": 1,
+      "nominal": 287764.636796969,
+      "total": 287764.636796969
+     },
+     {
+      "fila": 90,
+      "desde": "2023-08-01",
+      "meses": 1,
+      "nominal": 329716.470975486,
+      "total": 329716.470975486
+     },
+     {
+      "fila": 91,
+      "desde": "2023-09-01",
+      "meses": 1,
+      "nominal": 345023.447196981,
+      "total": 345023.447196981
+     },
+     {
+      "fila": 92,
+      "desde": "2023-10-01",
+      "meses": 1,
+      "nominal": 360330.43451599,
+      "total": 360330.43451599
+     },
+     {
+      "fila": 93,
+      "desde": "2023-11-01",
+      "meses": 1,
+      "nominal": 404878.669780806,
+      "total": 404878.669780806
+     },
+     {
+      "fila": 94,
+      "desde": "2023-12-01",
+      "meses": 1,
+      "nominal": 434764.849616244,
+      "total": 434764.849616244
+     },
+     {
+      "fila": 96,
+      "desde": "2024-01-01",
+      "meses": 1,
+      "nominal": 459668.02351949,
+      "total": 459668.02351949
+     },
+     {
+      "fila": 97,
+      "desde": "2024-02-01",
+      "meses": 1,
+      "nominal": 524072.748670097,
+      "total": 524072.748670097
+     },
+     {
+      "fila": 98,
+      "desde": "2024-03-01",
+      "meses": 1,
+      "nominal": 588477.467650662,
+      "total": 588477.467650662
+     },
+     {
+      "fila": 99,
+      "desde": "2024-04-01",
+      "meses": 1,
+      "nominal": 638446.947230158,
+      "total": 638446.947230158
+     },
+     {
+      "fila": 100,
+      "desde": "2024-05-01",
+      "meses": 1,
+      "nominal": 688416.425076737,
+      "total": 688416.425076737
+     },
+     {
+      "fila": 101,
+      "desde": "2024-06-01",
+      "meses": 1,
+      "nominal": 766013.054729944,
+      "total": 766013.054729944
+     },
+     {
+      "fila": 103,
+      "desde": "2024-07-01",
+      "meses": 1,
+      "nominal": 825769.258605721,
+      "total": 825769.258605721
+     },
+     {
+      "fila": 104,
+      "desde": "2024-08-01",
+      "meses": 1,
+      "nominal": 875529.066588179,
+      "total": 875529.066588179
+     },
+     {
+      "fila": 105,
+      "desde": "2024-09-01",
+      "meses": 1,
+      "nominal": 917092.36089821,
+      "total": 917092.36089821
+     },
+     {
+      "fila": 106,
+      "desde": "2024-10-01",
+      "meses": 1,
+      "nominal": 956204.216835688,
+      "total": 956204.216835688
+     },
+     {
+      "fila": 107,
+      "desde": "2024-11-01",
+      "meses": 1,
+      "nominal": 983920.299799588,
+      "total": 983920.299799588
+     },
+     {
+      "fila": 108,
+      "desde": "2024-12-01",
+      "meses": 1,
+      "nominal": 1007017.00256568,
+      "total": 1007017.00256568
+     }
+    ],
+    "sacs": [
+     {
+      "fila": 81,
+      "importe": 91054.4176713621
+     },
+     {
+      "fila": 88,
+      "importe": 136618.473605577
+     },
+     {
+      "fila": 95,
+      "importe": 217382.424808122
+     },
+     {
+      "fila": 102,
+      "importe": 383006.527364972
+     },
+     {
+      "fila": 109,
+      "importe": 503508.501282842
+     }
+    ],
+    "subtotal_credito": 14991778.9240227,
+    "descuentos": 899506.735441365,
+    "liquido": 14092272.1885814
+   },
+   "correcciones_planilla": [
+    {
+     "hoja": "2023",
+     "celda": "AQ20",
+     "motivo": "tabla de zona distinta de la escala de clase",
+     "clases_distintas": 25,
+     "ejemplo": [
+      "2",
+      30842.6,
+      33803.49
+     ]
+    },
+    {
+     "hoja": "2023",
+     "celda": "AV20",
+     "motivo": "tabla de zona distinta de la escala de clase",
+     "clases_distintas": 25,
+     "ejemplo": [
+      "2",
+      30842.6,
+      33803.49
+     ]
+    },
+    {
+     "hoja": "hasta 09-2024",
+     "celda": "BP20",
+     "motivo": "tabla de zona distinta de la escala de clase",
+     "clases_distintas": 1,
+     "ejemplo": [
+      "5",
+      105513.03,
+      105213.03
+     ]
+    },
+    {
+     "hoja": "desde 10-2024",
+     "celda": "O42",
+     "original": 8110.48,
+     "corregida": 8345.57,
+     "motivo": "aumento marzo/2010 desactualizado en nov/2024"
+    },
+    {
+     "hoja": "desde 10-2024",
+     "celda": "T42",
+     "original": 8110.48,
+     "corregida": 8345.57,
+     "motivo": "aumento marzo/2010 desactualizado en nov/2024"
+    }
+   ]
+  },
+  {
+   "nombre": "dos_cargos_70_30_con_retiro_parcial_y_anticipo",
+   "cargos": [
+    {
+     "secuencia": 1,
+     "porcentaje_secuencia": 70,
+     "clase": 20,
+     "responsabilidad_jerarquica_porcentaje": 100,
+     "titulo": "posgrado",
+     "anios_antiguedad": 27,
+     "adicional_seguridad": true,
+     "porcentaje_retiro": 87
+    },
+    {
+     "secuencia": 2,
+     "porcentaje_secuencia": 30,
+     "clase": 9,
+     "titulo": "ninguno",
+     "titulo_pregrado_nivel": 2,
+     "anios_antiguedad": 10,
+     "riesgo_especial": true
+    }
+   ],
+   "beneficiario": {
+    "parentesco": "conyuge",
+    "porcentaje": 100
+   },
+   "anticipo": 120000,
+   "esperado": {
+    "tramos": [
+     {
+      "fila": 75,
+      "desde": "2022-07-01",
+      "meses": 1,
+      "nominal": 139919.543760076,
+      "total": 139919.543760076
+     },
+     {
+      "fila": 76,
+      "desde": "2022-08-01",
+      "meses": 1,
+      "nominal": 158029.039002777,
+      "total": 158029.039002777
+     },
+     {
+      "fila": 77,
+      "desde": "2022-09-01",
+      "meses": 1,
+      "nominal": 165863.471184481,
+      "total": 165863.471184481
+     },
+     {
+      "fila": 78,
+      "desde": "2022-10-01",
+      "meses": 1,
+      "nominal": 174817.114805261,
+      "total": 174817.114805261
+     },
+     {
+      "fila": 79,
+      "desde": "2022-11-01",
+      "meses": 1,
+      "nominal": 182651.539728337,
+      "total": 182651.539728337
+     },
+     {
+      "fila": 80,
+      "desde": "2022-12-01",
+      "meses": 1,
+      "nominal": 209834.191542613,
+      "total": 209834.191542613
+     },
+     {
+      "fila": 82,
+      "desde": "2023-01-01",
+      "meses": 1,
+      "nominal": 220090.947171367,
+      "total": 220090.947171367
+     },
+     {
+      "fila": 83,
+      "desde": "2023-02-01",
+      "meses": 1,
+      "nominal": 230347.775933059,
+      "total": 230347.775933059
+     },
+     {
+      "fila": 84,
+      "desde": "2023-03-01",
+      "meses": 1,
+      "nominal": 250861.357783057,
+      "total": 250861.357783057
+     },
+     {
+      "fila": 85,
+      "desde": "2023-04-01",
+      "meses": 1,
+      "nominal": 268978.284070546,
+      "total": 268978.284070546
+     },
+     {
+      "fila": 86,
+      "desde": "2023-05-01",
+      "meses": 1,
+      "nominal": 294350.184475867,
+      "total": 294350.184475867
+     },
+     {
+      "fila": 87,
+      "desde": "2023-06-01",
+      "meses": 1,
+      "nominal": 316548.75117828,
+      "total": 316548.75117828
+     },
+     {
+      "fila": 89,
+      "desde": "2023-07-01",
+      "meses": 1,
+      "nominal": 333463.761407102,
+      "total": 333463.761407102
+     },
+     {
+      "fila": 90,
+      "desde": "2023-08-01",
+      "meses": 1,
+      "nominal": 384381.870919855,
+      "total": 384381.870919855
+     },
+     {
+      "fila": 91,
+      "desde": "2023-09-01",
+      "meses": 1,
+      "nominal": 402302.033897192,
+      "total": 402302.033897192
+     },
+     {
+      "fila": 92,
+      "desde": "2023-10-01",
+      "meses": 1,
+      "nominal": 420222.246837257,
+      "total": 420222.246837257
+     },
+     {
+      "fila": 93,
+      "desde": "2023-11-01",
+      "meses": 1,
+      "nominal": 472459.871051893,
+      "total": 472459.871051893
+     },
+     {
+      "fila": 94,
+      "desde": "2023-12-01",
+      "meses": 1,
+      "nominal": 507454.537780364,
+      "total": 507454.537780364
+     },
+     {
+      "fila": 96,
+      "desde": "2024-01-01",
+      "meses": 1,
+      "nominal": 536614.423074371,
+      "total": 536614.423074371
+     },
+     {
+      "fila": 97,
+      "desde": "2024-02-01",
+      "meses": 1,
+      "nominal": 612027.912946033,
+      "total": 612027.912946033
+     },
+     {
+      "fila": 98,
+      "desde": "2024-03-01",
+      "meses": 1,
+      "nominal": 687441.383192808,
+      "total": 687441.383192808
+     },
+     {
+      "fila": 99,
+      "desde": "2024-04-01",
+      "meses": 1,
+      "nominal": 745952.182078342,
+      "total": 745952.182078342
+     },
+     {
+      "fila": 100,
+      "desde": "2024-05-01",
+      "meses": 1,
+      "nominal": 804462.997424662,
+      "total": 804462.997424662
+     },
+     {
+      "fila": 101,
+      "desde": "2024-06-01",
+      "meses": 1,
+      "nominal": 892941.911139356,
+      "total": 892941.911139356
+     },
+     {
+      "fila": 103,
+      "desde": "2024-07-01",
+      "meses": 1,
+      "nominal": 952958.33373349,
+      "total": 952958.33373349
+     },
+     {
+      "fila": 104,
+      "desde": "2024-08-01",
+      "meses": 1,
+      "nominal": 1009658.12088226,
+      "total": 1009658.12088226
+     },
+     {
+      "fila": 105,
+      "desde": "2024-09-01",
+      "meses": 1,
+      "nominal": 1057625.22360263,
+      "total": 1057625.22360263
+     },
+     {
+      "fila": 106,
+      "desde": "2024-10-01",
+      "meses": 1,
+      "nominal": 1103765.67694415,
+      "total": 1103765.67694415
+     },
+     {
+      "fila": 107,
+      "desde": "2024-11-01",
+      "meses": 1,
+      "nominal": 1135758.89697075,
+      "total": 1135758.89697075
+     },
+     {
+      "fila": 108,
+      "desde": "2024-12-01",
+      "meses": 1,
+      "nominal": 1162419.88984517,
+      "total": 1162419.88984517
+     }
+    ],
+    "sacs": [
+     {
+      "fila": 81,
+      "importe": 104917.095771307
+     },
+     {
+      "fila": 88,
+      "importe": 158274.37558914
+     },
+     {
+      "fila": 95,
+      "importe": 253727.268890182
+     },
+     {
+      "fila": 102,
+      "importe": 446470.955569678
+     },
+     {
+      "fila": 109,
+      "importe": 581209.944922585
+     }
+    ],
+    "subtotal_credito": 17378803.1151063,
+    "descuentos": 1042728.18690638,
+    "liquido": 16216074.9281999
+   },
+   "correcciones_planilla": [
+    {
+     "hoja": "2023",
+     "celda": "AQ20",
+     "motivo": "tabla de zona distinta de la escala de clase",
+     "clases_distintas": 25,
+     "ejemplo": [
+      "2",
+      30842.6,
+      33803.49
+     ]
+    },
+    {
+     "hoja": "2023",
+     "celda": "AV20",
+     "motivo": "tabla de zona distinta de la escala de clase",
+     "clases_distintas": 25,
+     "ejemplo": [
+      "2",
+      30842.6,
+      33803.49
+     ]
+    },
+    {
+     "hoja": "hasta 09-2024",
+     "celda": "BP20",
+     "motivo": "tabla de zona distinta de la escala de clase",
+     "clases_distintas": 1,
+     "ejemplo": [
+      "5",
+      105513.03,
+      105213.03
+     ]
+    },
+    {
+     "hoja": "desde 10-2024",
+     "celda": "O42",
+     "original": 8110.48,
+     "corregida": 8345.57,
+     "motivo": "aumento marzo/2010 desactualizado en nov/2024"
+    },
+    {
+     "hoja": "desde 10-2024",
+     "celda": "T42",
+     "original": 8110.48,
+     "corregida": 8345.57,
+     "motivo": "aumento marzo/2010 desactualizado en nov/2024"
+    }
+   ]
+  }
+ ]
+}

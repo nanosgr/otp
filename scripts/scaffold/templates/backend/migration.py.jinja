@@ -1,0 +1,40 @@
+"""add_<< plural >>
+
+Revision ID: << new_rev >>
+Revises: << head_rev >>
+Create Date: << create_date >>
+
+Tabla `<< plural >>` — recurso generado por scripts/scaffold_resource.py.
+Removible con `python scripts/remove_domain.py << plural >>`.
+"""
+from alembic import op
+import sqlalchemy as sa
+
+
+revision = '<< new_rev >>'
+down_revision = '<< head_rev >>'
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    op.create_table(
+        '<< plural >>',
+        sa.Column('id', sa.Integer(), nullable=False),
+{% for f in fields %}
+        << tm.migration_column(f) >>,
+{% endfor %}
+{% if has_owner %}
+        sa.Column('owner_id', sa.Integer(), nullable=True),
+{% endif %}
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+{% if has_owner %}
+        sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ondelete='SET NULL'),
+{% endif %}
+        sa.PrimaryKeyConstraint('id'),
+    )
+
+
+def downgrade() -> None:
+    op.drop_table('<< plural >>')

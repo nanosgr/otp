@@ -1,0 +1,171 @@
+"""Tests e2e de /api/v1/<< plural >> — generado por scripts/scaffold_resource.py."""
+import pytest
+from fastapi.testclient import TestClient
+
+from app.core import rbac
+from app.core.security import create_access_token
+from app.db.database import get_db
+from app.main import app
+{% if scope_mode == 'attribute' %}
+from app.models.models import Permission, Role, RolePermissionLink, User, UserScope
+{% else %}
+from app.models.models import Permission, Role, RolePermissionLink, User
+{% endif %}
+from app.models.models import << S >>
+from app.services.crud import user_service
+
+
+@pytest.fixture(autouse=True)
+def _clear_cache():
+    rbac.invalidate_policy_cache()
+    yield
+    rbac.invalidate_policy_cache()
+
+
+@pytest.fixture
+def client(db):
+    app.dependency_overrides[get_db] = lambda: db
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+def _token(user: User) -> dict:
+    tok = create_access_token({"sub": user.username, "token_version": user.token_version})
+    return {"Authorization": f"Bearer {tok}"}
+
+
+def _mkuser(db, name, *roles):
+    u = User(username=name, email=f"{name}@e.com", hashed_password="x")
+    for r in roles:
+        u.roles.append(r)
+    db.add(u)
+    db.commit()
+    db.refresh(u)
+    return user_service.get_user(db, u.id)
+
+
+CREATE_PAYLOAD = << sample_create >>
+UPDATE_PAYLOAD = << sample_update >>
+
+
+@pytest.fixture
+def graph(db):
+    perms = {
+        n: Permission(name=f"<< plural >>:{n}", resource="<< plural >>", action=n)
+        for n in ("read", "create", "update", "delete")
+    }
+    star = Permission(name="*:*", resource="*", action="*")
+    db.add_all([*perms.values(), star])
+    db.commit()
+    for p in [*perms.values(), star]:
+        db.refresh(p)
+
+    admin_role = Role(name="<< S >>Admin")
+    db.add(admin_role)
+    db.commit()
+    db.refresh(admin_role)
+    db.add(RolePermissionLink(role_id=admin_role.id, permission_id=star.id))
+    db.commit()
+
+    out = {"perms": perms, "admin": _mkuser(db, "adm_<< singular >>", admin_role)}
+
+{% if scope_mode == 'own' %}
+    seller = Role(name="<< S >>Seller")
+    db.add(seller)
+    db.commit()
+    db.refresh(seller)
+    db.add_all([
+        RolePermissionLink(role_id=seller.id, permission_id=perms["read"].id, scope="own"),
+        RolePermissionLink(role_id=seller.id, permission_id=perms["create"].id, scope="own"),
+    ])
+    db.commit()
+    out["seller"] = _mkuser(db, "seller_<< singular >>", seller)
+    out["seller2"] = _mkuser(db, "seller2_<< singular >>", seller)
+{% elif scope_mode == 'attribute' %}
+    boss = Role(name="<< S >>Boss")
+    db.add(boss)
+    db.commit()
+    db.refresh(boss)
+    db.add_all([
+        RolePermissionLink(role_id=boss.id, permission_id=perms["read"].id,
+                           scope="attribute", scope_dimension="<< dimension >>"),
+        RolePermissionLink(role_id=boss.id, permission_id=perms["create"].id, scope="own"),
+    ])
+    db.commit()
+    out["boss"] = _mkuser(db, "boss_<< singular >>", boss)
+    db.add(UserScope(user_id=out["boss"].id, dimension="<< dimension >>", value=<< dim_value | repr >>))
+    db.commit()
+{% else %}
+    reader_role = Role(name="<< S >>Reader")
+    db.add(reader_role)
+    db.commit()
+    db.refresh(reader_role)
+    db.add(RolePermissionLink(role_id=reader_role.id, permission_id=perms["read"].id))
+    db.commit()
+    out["reader"] = _mkuser(db, "reader_<< singular >>", reader_role)
+    out["nobody"] = _mkuser(db, "nobody_<< singular >>")
+{% endif %}
+    return out
+
+
+def test_crud_happy_path(client, graph):
+    r = client.post("/api/v1/<< plural >>/", headers=_token(graph["admin"]), json=CREATE_PAYLOAD)
+    assert r.status_code == 200, r.text
+    obj_id = r.json()["id"]
+
+    assert client.get(f"/api/v1/<< plural >>/{obj_id}", headers=_token(graph["admin"])).status_code == 200
+
+    r = client.get("/api/v1/<< plural >>/", headers=_token(graph["admin"]))
+    assert r.status_code == 200
+    assert r.json()["total"] >= 1
+
+    r = client.put(f"/api/v1/<< plural >>/{obj_id}", headers=_token(graph["admin"]), json=UPDATE_PAYLOAD)
+    assert r.status_code == 200, r.text
+
+    assert client.delete(f"/api/v1/<< plural >>/{obj_id}", headers=_token(graph["admin"])).status_code == 200
+    assert client.get(f"/api/v1/<< plural >>/{obj_id}", headers=_token(graph["admin"])).status_code == 404
+
+
+{% if scope_mode == 'own' %}
+def test_own_scope_lists_only_own_rows(client, graph, db):
+    r1 = client.post("/api/v1/<< plural >>/", headers=_token(graph["seller"]), json=CREATE_PAYLOAD)
+    assert r1.status_code == 200, r1.text
+    assert r1.json()["owner_id"] == graph["seller"].id
+    client.post("/api/v1/<< plural >>/", headers=_token(graph["seller2"]), json=CREATE_PAYLOAD)
+
+    body = client.get("/api/v1/<< plural >>/", headers=_token(graph["seller"])).json()
+    assert body["total"] == 1
+    assert {it["owner_id"] for it in body["items"]} == {graph["seller"].id}
+
+    # el admin (*:*) ve todo
+    assert client.get("/api/v1/<< plural >>/", headers=_token(graph["admin"])).json()["total"] == 2
+
+
+def test_own_scope_out_of_scope_row_is_404(client, graph):
+    other = client.post("/api/v1/<< plural >>/", headers=_token(graph["seller2"]), json=CREATE_PAYLOAD).json()
+    assert client.get(f"/api/v1/<< plural >>/{other['id']}", headers=_token(graph["seller"])).status_code == 404
+{% elif scope_mode == 'attribute' %}
+def test_attribute_scope_filters_by_dimension(client, graph, db):
+    # fila dentro de la dimensión del boss
+    inside = dict(CREATE_PAYLOAD)
+    inside["<< dimension >>"] = << dim_value | repr >>
+    outside = dict(CREATE_PAYLOAD)
+    outside["<< dimension >>"] = "otra-dimension"
+    a = client.post("/api/v1/<< plural >>/", headers=_token(graph["admin"]), json=inside)
+    b = client.post("/api/v1/<< plural >>/", headers=_token(graph["admin"]), json=outside)
+    assert a.status_code == 200 and b.status_code == 200, (a.text, b.text)
+
+    body = client.get("/api/v1/<< plural >>/", headers=_token(graph["boss"])).json()
+    ids = {it["id"] for it in body["items"]}
+    assert a.json()["id"] in ids
+    assert b.json()["id"] not in ids
+{% else %}
+def test_read_only_role_cannot_create(client, graph):
+    assert client.post("/api/v1/<< plural >>/", headers=_token(graph["reader"]),
+                       json=CREATE_PAYLOAD).status_code == 403
+
+
+def test_user_without_permission_gets_403(client, graph):
+    assert client.get("/api/v1/<< plural >>/", headers=_token(graph["nobody"])).status_code == 403
+{% endif %}

@@ -1,0 +1,57 @@
+class << S >>Service:
+{% if is_scoped %}
+    """CRUD de << plural >> (recurso generado), con filtrado por `Scope`."""
+{% else %}
+    """CRUD de << plural >> (recurso generado)."""
+{% endif %}
+
+    def get(self, db: Session, obj_id: int) -> Optional[<< S >>]:
+        return db.get(<< S >>, obj_id)
+
+    def list(self, db: Session, {% if is_scoped %}scope, {% endif %}*, skip: int = 0, limit: int = 100<< filter_params_sig >>) -> List[<< S >>]:
+{% if is_scoped %}
+        stmt = scope.apply(select(<< S >>), << S >>)
+{% else %}
+        stmt = select(<< S >>)
+{% endif %}
+{% for f in filter_fields %}
+        if << f.name >> is not None:
+            stmt = stmt.where(<< S >>.<< f.name >> == << f.name >>)
+{% endfor %}
+        return list(db.exec(stmt.order_by(<< S >>.id).offset(skip).limit(limit)).all())
+
+    def count(self, db: Session{% if is_scoped %}, scope{% endif %}{% if filter_fields %}, *<< filter_params_sig >>{% endif %}) -> int:
+{% if is_scoped %}
+        stmt = scope.apply(select(func.count(<< S >>.id)), << S >>)
+{% else %}
+        stmt = select(func.count(<< S >>.id))
+{% endif %}
+{% for f in filter_fields %}
+        if << f.name >> is not None:
+            stmt = stmt.where(<< S >>.<< f.name >> == << f.name >>)
+{% endfor %}
+        return db.exec(stmt).one()
+
+    def create(self, db: Session, data: << S >>Create{% if has_owner %}, *, owner_id: Optional[int]{% endif %}) -> << S >>:
+        obj = << S >>(**data.model_dump(){% if has_owner %}, owner_id=owner_id{% endif %})
+        db.add(obj)
+        db.commit()
+        db.refresh(obj)
+        return obj
+
+    def update(self, db: Session, obj_id: int, data: << S >>Update) -> Optional[<< S >>]:
+        obj = db.get(<< S >>, obj_id)
+        if obj:
+            for field, value in data.model_dump(exclude_unset=True).items():
+                setattr(obj, field, value)
+            db.commit()
+            db.refresh(obj)
+        return obj
+
+    def delete(self, db: Session, obj_id: int) -> bool:
+        obj = db.get(<< S >>, obj_id)
+        if obj:
+            db.delete(obj)
+            db.commit()
+            return True
+        return False

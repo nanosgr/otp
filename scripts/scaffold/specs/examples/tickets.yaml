@@ -1,0 +1,30 @@
+# Spec de ejemplo — recurso `tickets` con scope por atributo (dimensión "team").
+resource:
+  singular: ticket
+  plural: tickets
+  label_singular: "Ticket"
+  label_plural: "Tickets"
+  icon: Ticket
+
+fields:
+  - { name: subject, type: string, optional: false }
+  - { name: body, type: text, optional: true }
+  - name: priority
+    type: enum
+    optional: false
+    default: normal
+    filterable: true
+    enum_values:
+      - { value: low, label: "Baja" }
+      - { value: normal, label: "Normal" }
+      - { value: high, label: "Alta" }
+
+scoping:
+  mode: attribute
+  dimension: team
+
+frontend:
+  generate: true
+
+docs:
+  update_claude_md: true

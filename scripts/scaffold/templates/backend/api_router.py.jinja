@@ -1,0 +1,164 @@
+"""Endpoints CRUD de << plural >> — generado por scripts/scaffold_resource.py.
+
+{% if is_scoped %}
+Acceso con alcance de datos (`require_scope`): las filas fuera del alcance del
+usuario devuelven 404. Reglas `scope` en `role_permissions` (own / attribute).
+{% else %}
+Acceso por permiso plano (`<< plural >>:<action>`).
+{% endif %}
+"""
+import json
+from math import ceil
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlmodel import Session
+
+from app.db.database import get_db
+from app.services.crud import << singular >>_service
+from app.services.audit_service import audit_service
+from app.models.models import User, << S >>Read, << S >>Create, << S >>Update
+from app.schemas.schemas import PaginatedResponse
+{% if is_scoped %}
+from app.core.deps import require_scope, ScopedAccess
+{% else %}
+from app.core.deps import (
+    require_<< singular >>_read,
+    require_<< singular >>_create,
+    require_<< singular >>_update,
+    require_<< singular >>_delete,
+)
+{% endif %}
+
+router = APIRouter()
+
+
+def _get_request_meta(request: Request) -> tuple:
+    rid = getattr(request.state, "request_id", None)
+    ua = request.headers.get("user-agent")
+    ip = request.client.host if request.client else None
+    return rid, ua, ip
+
+
+@router.get("/", response_model=PaginatedResponse[<< S >>Read])
+def read_<< plural >>(
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=10, ge=1, le=1000),
+{% for f in filter_fields %}
+    << f.name >>: << tm.py_query_annot(f) >> = Query(default=None),
+{% endfor %}
+    db: Session = Depends(get_db),
+{% if is_scoped %}
+    access: ScopedAccess = Depends(require_scope("<< plural >>", "read")),
+{% else %}
+    current_user: User = Depends(require_<< singular >>_read()),
+{% endif %}
+):
+    total = << singular >>_service.count(db{% if is_scoped %}, access.scope{% endif %}<< filter_kwargs >>)
+    items = << singular >>_service.list(db{% if is_scoped %}, access.scope{% endif %}, skip=(page - 1) * size, limit=size<< filter_kwargs >>)
+    return PaginatedResponse(
+        items=[<< S >>Read.model_validate(o) for o in items],
+        total=total, page=page, size=size,
+        pages=ceil(total / size) if total else 1,
+    )
+
+
+@router.post("/", response_model=<< S >>Read)
+def create_<< singular >>(
+    request: Request,
+    payload: << S >>Create,
+    db: Session = Depends(get_db),
+{% if is_scoped %}
+    access: ScopedAccess = Depends(require_scope("<< plural >>", "create")),
+{% else %}
+    current_user: User = Depends(require_<< singular >>_create()),
+{% endif %}
+):
+{% if is_scoped %}
+    result = << singular >>_service.create(db, payload, owner_id=access.user.id)
+    actor = access.user
+{% else %}
+    result = << singular >>_service.create(db, payload)
+    actor = current_user
+{% endif %}
+    rid, ua, ip = _get_request_meta(request)
+    audit_service.log(db, action="create", resource="<< singular >>", resource_id=result.id,
+                      user_id=actor.id, username=actor.username,
+                      after_data=json.dumps({<< audit_after >>}),
+                      ip=ip, request_id=rid, user_agent=ua)
+    return result
+
+
+@router.get("/{obj_id}", response_model=<< S >>Read)
+def read_<< singular >>(
+    obj_id: int,
+    db: Session = Depends(get_db),
+{% if is_scoped %}
+    access: ScopedAccess = Depends(require_scope("<< plural >>", "read")),
+{% else %}
+    current_user: User = Depends(require_<< singular >>_read()),
+{% endif %}
+):
+    obj = << singular >>_service.get(db, obj_id)
+    if obj is None{% if is_scoped %} or not access.scope.matches(obj){% endif %}:
+        raise HTTPException(status_code=404, detail="<< S >> not found")
+    return obj
+
+
+@router.put("/{obj_id}", response_model=<< S >>Read)
+def update_<< singular >>(
+    request: Request,
+    obj_id: int,
+    payload: << S >>Update,
+    db: Session = Depends(get_db),
+{% if is_scoped %}
+    access: ScopedAccess = Depends(require_scope("<< plural >>", "update")),
+{% else %}
+    current_user: User = Depends(require_<< singular >>_update()),
+{% endif %}
+):
+{% if is_scoped %}
+    actor = access.user
+{% else %}
+    actor = current_user
+{% endif %}
+    obj = << singular >>_service.get(db, obj_id)
+    if obj is None{% if is_scoped %} or not access.scope.matches(obj){% endif %}:
+        raise HTTPException(status_code=404, detail="<< S >> not found")
+    before = json.dumps({<< audit_before >>})
+    result = << singular >>_service.update(db, obj_id, payload)
+    rid, ua, ip = _get_request_meta(request)
+    audit_service.log(db, action="update", resource="<< singular >>", resource_id=obj_id,
+                      user_id=actor.id, username=actor.username,
+                      before_data=before,
+                      after_data=json.dumps(payload.model_dump(exclude_unset=True)),
+                      ip=ip, request_id=rid, user_agent=ua)
+    return result
+
+
+@router.delete("/{obj_id}")
+def delete_<< singular >>(
+    request: Request,
+    obj_id: int,
+    db: Session = Depends(get_db),
+{% if is_scoped %}
+    access: ScopedAccess = Depends(require_scope("<< plural >>", "delete")),
+{% else %}
+    current_user: User = Depends(require_<< singular >>_delete()),
+{% endif %}
+):
+{% if is_scoped %}
+    actor = access.user
+{% else %}
+    actor = current_user
+{% endif %}
+    obj = << singular >>_service.get(db, obj_id)
+    if obj is None{% if is_scoped %} or not access.scope.matches(obj){% endif %}:
+        raise HTTPException(status_code=404, detail="<< S >> not found")
+    before = json.dumps({<< audit_before >>})
+    << singular >>_service.delete(db, obj_id)
+    rid, ua, ip = _get_request_meta(request)
+    audit_service.log(db, action="delete", resource="<< singular >>", resource_id=obj_id,
+                      user_id=actor.id, username=actor.username,
+                      before_data=before, ip=ip, request_id=rid, user_agent=ua)
+    return {"message": "<< S >> deleted successfully"}

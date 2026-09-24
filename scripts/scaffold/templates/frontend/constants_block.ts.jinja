@@ -1,0 +1,18 @@
+{% for f in enum_fields %}
+// << S >>.<< f.name >>
+export const << plural|upper >>_<< f.name|upper >>_OPTIONS = [
+{% for e in f.enum_values %}
+  { value: '<< e.value >>', label: '<< e.label >>' },
+{% endfor %}
+] as const;
+{% if f.filterable %}
+
+export const << plural|upper >>_<< f.name|upper >>_FILTER_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+  ...<< plural|upper >>_<< f.name|upper >>_OPTIONS,
+] as const;
+{% endif %}
+{% if not loop.last %}
+
+{% endif %}
+{% endfor %}

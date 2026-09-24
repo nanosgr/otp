@@ -1,0 +1,13 @@
+[package]
+name = "otp-formula-py"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "otp_engine"
+crate-type = ["cdylib"]
+
+[dependencies]
+otp-formula = { path = "../otp-formula" }
+pyo3 = { version = "0.23", features = ["extension-module", "abi3-py39"] }

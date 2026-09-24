@@ -1,0 +1,38 @@
+# Spec de ejemplo — recurso `products` con data scoping por dueño (scope="own").
+# Copiá este archivo, editalo y generá:
+#   python scripts/scaffold_resource.py --from scripts/scaffold/specs/examples/products.yaml
+resource:
+  singular: product
+  plural: products
+  label_singular: "Producto"
+  label_plural: "Productos"
+  icon: Package
+
+fields:
+  - { name: name, type: string, optional: false }
+  - { name: description, type: text, optional: true }
+  - { name: price, type: money, optional: false, default: 0 }
+  - name: category
+    type: enum
+    optional: true
+    default: general
+    filterable: true
+    enum_values:
+      - { value: general, label: "General" }
+      - { value: perishable, label: "Perecedero" }
+      - { value: hazardous, label: "Peligroso" }
+  - { name: in_stock, type: bool, optional: false, default: true }
+
+scoping:
+  mode: own
+
+grants:
+  rely_on_auto_inherit: true
+  scoped_demo_roles: false
+
+frontend:
+  generate: true
+  variant: auto
+
+docs:
+  update_claude_md: true
