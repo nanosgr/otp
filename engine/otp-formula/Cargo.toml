@@ -6,7 +6,7 @@ license.workspace = true
 description = "Motor de fórmulas para la liquidación de haberes previsionales (online-otp)"
 
 [dependencies]
-rust_decimal = { version = "1", default-features = false, features = ["std"] }
+rust_decimal = { version = "1", default-features = false, features = ["std", "maths"] }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 serde_json = { version = "1", features = ["arbitrary_precision"] }
 thiserror = "1"

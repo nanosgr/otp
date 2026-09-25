@@ -14,6 +14,7 @@ pub enum Token {
     Star,
     Slash,
     Percent,
+    Caret,
     LParen,
     RParen,
     Comma,
@@ -56,6 +57,7 @@ pub fn lex(src: &str) -> Result<Vec<Tok>> {
             '*' => { i += 1; Token::Star }
             '/' => { i += 1; Token::Slash }
             '%' => { i += 1; Token::Percent }
+            '^' => { i += 1; Token::Caret }
             '(' => { i += 1; Token::LParen }
             ')' => { i += 1; Token::RParen }
             ',' => { i += 1; Token::Comma }
@@ -80,6 +82,8 @@ pub fn lex(src: &str) -> Result<Vec<Tok>> {
                 loop {
                     match chars.get(i) {
                         None => return Err(FormulaError::syntax(pos, "Texto sin cerrar")),
+                        // la comilla duplicada (`'it''s'`) es una comilla literal
+                        Some(&ch) if ch == q && chars.get(i + 1) == Some(&q) => { s.push(q); i += 2; }
                         Some(&ch) if ch == q => { i += 1; break; }
                         Some(&ch) => { s.push(ch); i += 1; }
                     }

@@ -58,6 +58,15 @@ pub struct ConceptoRes {
     pub decimales_importe: u32,
     pub condicion: bool,
     pub error: Option<String>,
+    pub error_detalle: Option<ErrorDetalle>,
+}
+
+/// Dónde y de qué clase fue el error de un concepto (`campo` = fórmula que falló; `pos` = carácter en esa fórmula).
+#[derive(Debug, Clone, PartialEq)]
+pub struct ErrorDetalle {
+    pub campo: Option<&'static str>,
+    pub tipo: &'static str,
+    pub pos: Option<usize>,
 }
 
 impl ConceptoRes {

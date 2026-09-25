@@ -3,7 +3,11 @@
 El motor es puro: recibe reglas y un contexto ya cargado y devuelve conceptos calculados.
 Los Decimal y las fechas se envían tipados (`{"decimal": ".."}` / `{"date": ".."}`) para no
 perder precisión ni confundir un texto numérico con un número.
+
+Las reglas compiladas se cachean por su JSON: el liquidador pide las mismas reglas para cada tramo y cargo de una
+vigencia, así que las fórmulas se parsean una sola vez.
 """
+import functools
 import json
 from datetime import date, datetime
 from decimal import Decimal
@@ -47,9 +51,22 @@ def version() -> str:
     return _motor().__version__
 
 
+@functools.lru_cache(maxsize=128)
+def _compilado(reglas_json: str):
+    return _motor().ReglasCompiladas(reglas_json)
+
+
+def compilar(reglas: Dict[str, Any]):
+    """Compila las reglas una vez (`otp_engine.ReglasCompiladas`); `calcular` ya lo hace con caché."""
+    return _compilado(_dumps(reglas))
+
+
 def calcular(reglas: Dict[str, Any], contexto: Dict[str, Any]) -> Dict[str, Any]:
     """Calcula conceptos y totales. Los importes vuelven como str (usar Decimal en el llamador)."""
-    return json.loads(_motor().calcular(_dumps(reglas), _dumps(contexto)))
+    reglas_json, contexto_json = _dumps(reglas), _dumps(contexto)
+    if not hasattr(_motor(), "ReglasCompiladas"):  # otp_engine compilado antes de que existiera la clase
+        return json.loads(_engine.calcular(reglas_json, contexto_json))
+    return json.loads(_compilado(reglas_json).calcular(contexto_json))
 
 
 def validar_reglas(reglas: Dict[str, Any], variables_conocidas: Optional[Iterable[str]] = None) -> List[Dict[str, Any]]:

@@ -9,13 +9,14 @@ pub mod context;
 pub mod engine;
 pub mod error;
 pub mod eval;
+pub mod functions;
 pub mod lexer;
 pub mod macros;
 pub mod model;
 pub mod parser;
 pub mod value;
 
-pub use engine::{calcular, validar_formula, validar_reglas, Reglas, Resultado};
+pub use engine::{calcular, compilar, validar_formula, validar_reglas, Compilado, Reglas, Resultado};
 pub use error::FormulaError;
 
 use serde_json::Value as J;
@@ -24,11 +25,24 @@ fn parse_json(s: &str, what: &str) -> Result<J, FormulaError> {
     serde_json::from_str(s).map_err(|e| FormulaError::eval(format!("JSON inválido en {what}: {e}")))
 }
 
-/// Calcula un recibo. Entrada y salida en JSON (ver `docs/engine.md`).
+/// Calcula un recibo. Entrada y salida en JSON (ver `engine/README.md`).
 pub fn calcular_json(reglas: &str, contexto: &str) -> Result<String, FormulaError> {
     let reglas = Reglas::from_json(&parse_json(reglas, "reglas")?)?;
     let ctx = context::Contexto::from_json(&parse_json(contexto, "contexto")?)?;
     Ok(calcular(&reglas, &ctx)?.to_json().to_string())
+}
+
+/// Compila las reglas una vez para calcular muchos recibos con `Compilado::calcular_json`.
+pub fn compilar_json(reglas: &str) -> Result<Compilado, FormulaError> {
+    compilar(&Reglas::from_json(&parse_json(reglas, "reglas")?)?)
+}
+
+impl Compilado {
+    /// Calcula un recibo con reglas ya compiladas. Misma salida que `calcular_json`.
+    pub fn calcular_json(&self, contexto: &str) -> Result<String, FormulaError> {
+        let ctx = context::Contexto::from_json(&parse_json(contexto, "contexto")?)?;
+        Ok(self.calcular(&ctx)?.to_json().to_string())
+    }
 }
 
 /// Valida todas las reglas (sintaxis, aridad, selectores, ciclos). Devuelve una lista JSON de problemas.

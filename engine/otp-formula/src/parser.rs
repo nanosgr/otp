@@ -33,9 +33,9 @@ fn ast_depth(root: &Expr) -> usize {
         max = max.max(d);
         match e {
             Expr::Neg(x) | Expr::Not(x) => stack.push((x, d + 1)),
-            Expr::Bin(_, a, b) => {
-                stack.push((a, d + 1));
-                stack.push((b, d + 1));
+            Expr::Bin { l, r, .. } => {
+                stack.push((l, d + 1));
+                stack.push((r, d + 1));
             }
             Expr::Call { args, .. } => stack.extend(args.iter().map(|a| (a, d + 1))),
             _ => {}
@@ -47,6 +47,10 @@ fn ast_depth(root: &Expr) -> usize {
 const MAX_DEPTH: usize = 128;
 const MAX_TOKENS: usize = 5_000;
 const MAX_AST_DEPTH: usize = 200;
+
+fn bin(op: BinOp, l: Expr, r: Expr, pos: usize) -> Expr {
+    Expr::Bin { op, l: Box::new(l), r: Box::new(r), pos }
+}
 
 struct Parser {
     toks: Vec<Tok>,
@@ -86,9 +90,10 @@ impl Parser {
     fn or_inner(&mut self) -> Result<Expr> {
         let mut l = self.and()?;
         while self.is_kw("OR") {
+            let pos = self.pos();
             self.i += 1;
             let r = self.and()?;
-            l = Expr::Bin(BinOp::Or, Box::new(l), Box::new(r));
+            l = bin(BinOp::Or, l, r, pos);
         }
         Ok(l)
     }
@@ -96,9 +101,10 @@ impl Parser {
     fn and(&mut self) -> Result<Expr> {
         let mut l = self.not()?;
         while self.is_kw("AND") {
+            let pos = self.pos();
             self.i += 1;
             let r = self.not()?;
-            l = Expr::Bin(BinOp::And, Box::new(l), Box::new(r));
+            l = bin(BinOp::And, l, r, pos);
         }
         Ok(l)
     }
@@ -129,9 +135,10 @@ impl Parser {
                 Some(Token::Ge) => BinOp::Ge,
                 _ => break,
             };
+            let pos = self.pos();
             self.i += 1;
             let r = self.add()?;
-            l = Expr::Bin(op, Box::new(l), Box::new(r));
+            l = bin(op, l, r, pos);
         }
         Ok(l)
     }
@@ -144,26 +151,45 @@ impl Parser {
                 Some(Token::Minus) => BinOp::Sub,
                 _ => break,
             };
+            let pos = self.pos();
             self.i += 1;
             let r = self.mul()?;
-            l = Expr::Bin(op, Box::new(l), Box::new(r));
+            l = bin(op, l, r, pos);
         }
         Ok(l)
     }
 
     fn mul(&mut self) -> Result<Expr> {
-        let mut l = self.unary()?;
+        let mut l = self.pow()?;
         loop {
             let op = match self.peek() {
                 Some(Token::Star) => BinOp::Mul,
                 Some(Token::Slash) => BinOp::Div,
                 _ => break,
             };
+            let pos = self.pos();
             self.i += 1;
-            let r = self.unary()?;
-            l = Expr::Bin(op, Box::new(l), Box::new(r));
+            let r = self.pow()?;
+            l = bin(op, l, r, pos);
         }
         Ok(l)
+    }
+
+    /// `a ^ b`, asociativo por la derecha. El menos unario liga más fuerte (como Excel): `-2^2` = 4.
+    fn pow(&mut self) -> Result<Expr> {
+        let base = self.unary()?;
+        if !matches!(self.peek(), Some(Token::Caret)) {
+            return Ok(base);
+        }
+        let pos = self.pos();
+        self.i += 1;
+        self.depth += 1;
+        if self.depth > MAX_DEPTH {
+            return Err(FormulaError::syntax(pos, "Fórmula demasiado anidada"));
+        }
+        let exp = self.pow();
+        self.depth -= 1;
+        Ok(bin(BinOp::Pow, base, exp?, pos))
     }
 
     fn unary(&mut self) -> Result<Expr> {
@@ -184,8 +210,12 @@ impl Parser {
 
     fn postfix(&mut self) -> Result<Expr> {
         let mut e = self.primary()?;
-        while self.eat(&Token::Percent) {
-            e = Expr::Bin(BinOp::Div, Box::new(e), Box::new(Expr::Num(Decimal::from(100))));
+        loop {
+            let pos = self.pos();
+            if !self.eat(&Token::Percent) {
+                break;
+            }
+            e = bin(BinOp::Div, e, Expr::Num(Decimal::from(100)), pos);
         }
         Ok(e)
     }
@@ -232,7 +262,7 @@ impl Parser {
                     }
                     Ok(Expr::Call { name, args, pos })
                 } else {
-                    Ok(Expr::Var(name))
+                    Ok(Expr::Var { name, pos })
                 }
             }
             other => Err(FormulaError::syntax(pos, format!("Token inesperado {other:?}"))),

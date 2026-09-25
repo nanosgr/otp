@@ -8,13 +8,13 @@ BACKEND_DIR="$PROJECT_ROOT/backend"
 
 cd "$BACKEND_DIR"
 
-if [ ! -d "env" ]; then
+if [ ! -d "venv" ]; then
     echo "Error: entorno virtual no encontrado. Ejecuta primero:"
-    echo "  cd backend && python3 -m venv venv && pip install -r requirements.txt"
+    echo "  ./backend/setup.sh"
     exit 1
 fi
 
-source env/bin/activate
+source venv/bin/activate
 
 echo "Aplicando migraciones Alembic..."
 alembic upgrade head

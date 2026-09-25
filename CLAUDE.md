@@ -211,6 +211,8 @@ Configuration is loaded via Pydantic Settings in `app/core/config.py`.
 - Instalar en el venv del backend: `cd engine/otp-formula-py && maturin develop --release` (pip: `maturin`). Tests: `cd engine && cargo test`.
 - Wrapper Python: `backend/app/services/motor.py`. Si `otp_engine` no está instalado el backend arranca igual, pero la validación de fórmulas se omite y `motor.calcular` lanza `MotorNoDisponible`; `tests/test_motor.py` y los tests de validación se saltean.
 - Al crear/editar un concepto (`app/api/prevision.py::_validar_concepto`) se validan sintaxis, aridad, selectores y ciclos contra todos los conceptos activos → 422 con el detalle. `POST /api/v1/formulas/validar` valida una fórmula suelta.
+- Funciones del lenguaje: registro único en `engine/otp-formula/src/functions.rs` (nombre, alias, aridad, implementación); `^` potencia, `%` sigue siendo porcentaje (resto = `MOD`). Los errores por concepto traen `error_detalle` `{campo, tipo, pos}`.
+- `motor.calcular` cachea las reglas compiladas (`otp_engine.ReglasCompiladas`, LRU por JSON de reglas): compilar cuesta ~0 por llamada; el costo restante del liquidador está en armar y serializar el contexto en Python.
 - Regla de modelado: los conceptos derivados (pensión, art. 37) no deben estar en la columna que suma `TOTAL('COLUMNA')` del haber, o se forma un ciclo.
 
 ## Liquidación (Fases 3 y 4)

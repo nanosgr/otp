@@ -10,10 +10,14 @@ engine/
 ```
 
 ```bash
-cd engine && cargo test                                  # 26 tests (unitarios + propiedades)
+cd engine && cargo test                                  # 34 tests (unitarios + propiedades)
 cd engine/otp-formula-py && maturin develop --release    # instala otp_engine en el venv activo
 ```
-Uso desde el backend: `app/services/motor.py` (`calcular`, `validar_reglas`, `validar_formula`).
+Uso desde el backend: `app/services/motor.py` (`calcular`, `compilar`, `validar_reglas`, `validar_formula`).
+
+**Compilar una vez:** `compilar(reglas)` / `otp_engine.ReglasCompiladas(reglas_json)` parsea las fórmulas, expande auxiliares y arma
+el orden de evaluación una sola vez; `.calcular(contexto_json)` da lo mismo que `calcular(reglas, contexto)`. `motor.calcular`
+cachea las reglas compiladas por su JSON (LRU de 128), así que el liquidador compila una vez por vigencia/etapa.
 
 ## Cálculo de un concepto
 Cada concepto tiene 4 fórmulas opcionales. Orden de evaluación: **condición** → unidad → unitario → importe.
@@ -32,10 +36,18 @@ Un error en un concepto se propaga a quienes lo referencian. Referirse a un conc
 Excluir con `TOTAL('REMUNERATIVO', #90, #91)` o poner los conceptos derivados (p. ej. pensión) en otra columna.
 
 ## Lenguaje
-- Números `12.5`, porcentaje `10%` (= /100), textos `'x'` o `"x"`, `TRUE/FALSE`, referencias `#10` (importe del concepto, 0 si no aplica).
-- Operadores: `+ - * /`, `= <> != < <= > >=`, `AND OR NOT`. Identificadores en mayúsculas (`FECHA`, `CLASE`, `COL.HABER`).
+- Números `12.5`, porcentaje `10%` (= /100), textos `'x'` o `"x"` (la comilla se escapa duplicándola: `'D''Angelo'`), `TRUE/FALSE`,
+  referencias `#10` (importe del concepto, 0 si no aplica).
+- Operadores: `+ - * /`, potencia `^`, `= <> != < <= > >=`, `AND OR NOT`. Identificadores en mayúsculas (`FECHA`, `CLASE`, `COL.HABER`).
+- Precedencia (de menor a mayor): `OR`, `AND`, `NOT`, comparaciones, `+ -`, `* /`, `^`, menos unario, `%` (porcentaje).
+  `^` es asociativo por la derecha (`2^3^2` = 512) y, como en Excel, el menos unario liga más fuerte: `-2^2` = 4, `10%^2` = 0,01.
+  Con exponente entero la potencia es exacta; con exponente decimal es una aproximación decimal (sin punto flotante).
 - Fechas: `FECHA('2025-03-01')`, `ANIOS(d1,d2)` (años cumplidos), `MESES`, `DIAS`, `ANIO`, `MES`, `DIA`.
-- Funciones: `IF/SI(c,a,b)`, `ROUND/REDONDEAR(x,n)`, `TRUNC(x,n)`, `MIN`, `MAX`, `ABS`.
+- Funciones (alias separados por `/`): `IF/SI(c,a,b)`, `ROUND/REDONDEAR(x[,n])` (mitad hacia arriba), `TRUNC(x[,n])`,
+  `CEIL/REDONDEAR_ARRIBA(x[,n])`, `FLOOR/REDONDEAR_ABAJO(x[,n])`, `MIN(…)`, `MAX(…)`, `SUMA/SUM(…)`, `PROMEDIO/AVERAGE(…)`, `ABS`,
+  `SIGNO/SIGN`, `MOD/RESTO(a,b)`, `POTENCIA/POW(x,y)`, `RAIZ/SQRT`, `EXP`, `LN`, `LOG10`.
+- **Nueva función:** una entrada en `otp-formula/src/functions.rs::FUNCIONES` (nombre, alias, aridad, implementación) y un test.
+  Las `Impl::Pura` reciben los argumentos evaluados; las `Impl::Especial` (lazy o con contexto) se resuelven en `eval.rs`.
 - `TABLA('COD', condición, resultado[, default])`: primera fila que cumple; en la condición/resultado están `COL1..COLn` y `COL.NOMBRE`.
 - `HISTORIAL('CAMPO'[, fecha[, default]])`, `EXISTE_HISTORIAL('CAMPO'[, fecha])`: valor vigente a la fecha (default: `FECHA`).
 - `EXISTE(#c)`, `UNIDAD_CONCEPTO(#c)`, `UNITARIO_CONCEPTO(#c)`, `IMPORTE_CONCEPTO(#c)`.
@@ -63,4 +75,9 @@ Entrada (`calcular(reglas_json, contexto_json)`):
  "campos": {"99": {"unidad": null, "importe": "10.5"}}}
 ```
 Valores: número, booleano y string (texto) directos; `{"decimal": ".."}` y `{"date": "AAAA-MM-DD"}` para tipar. `app/services/motor.py` los genera desde `Decimal`/`date`.
-Salida: `{"conceptos": [{codigo, descripcion, columna, orden, unidad, unitario, importe, condicion, error, message}], "orden_evaluacion": […], "totales": {…}}` con importes como strings.
+Salida: `{"conceptos": [{codigo, descripcion, columna, orden, unidad, unitario, importe, condicion, error, message, error_detalle}], "orden_evaluacion": […], "totales": {…}}` con importes como strings.
+
+**Errores:** `error_detalle` es `null` o `{campo, tipo, pos}`: `campo` = fórmula que falló (`formula_importe`, …), `pos` = carácter
+en esa fórmula y `tipo` ∈ `sintaxis`, `division_por_cero`, `tipo`, `variable_no_definida`, `funcion_desconocida`, `desbordamiento`,
+`sin_datos` (tabla/historial sin valor), `dependencia`, `selector`, `ciclo`, `otro`. El `message` de un error de evaluación señala
+el lugar: `formula_importe, posición 9 («100 + 10 ▶/ (5 - 5)»): División por cero`.

@@ -386,3 +386,119 @@ fn formula_larga_es_rechazada() {
     let r = run(json!({"conceptos": [{"codigo": "1", "formula_importe": razonable}]}), ctx(json!({})));
     assert_eq!(concepto(&r, "1")["importe"], "150.00");
 }
+
+// ------------------------------------------------------------ lenguaje: potencia, funciones, textos
+
+#[test]
+fn potencia_precedencia_y_asociatividad() {
+    assert_eq!(one("2^10")["importe"], "1024.00");
+    assert_eq!(one("2^3^2")["importe"], "512.00"); // por la derecha: 2^(3^2)
+    assert_eq!(one("2 * 3^2")["importe"], "18.00");
+    assert_eq!(one("-2^2")["importe"], "4.00"); // el menos unario liga más fuerte, como Excel
+    assert_eq!(one("-(2^2)")["importe"], "-4.00");
+    assert_eq!(one("2^-2")["importe"], "0.25");
+    assert_eq!(one("10%^2 * 100")["importe"], "1.00"); // (10%)^2 = 0,01
+    assert_eq!(one("1.05^2")["importe"], "1.10"); // 1,1025 exacto, redondeado a 2
+    assert_eq!(one("ROUND(1.05^2, 4) * 10000")["importe"], "11025.00");
+    assert_eq!(one("POTENCIA(9, 0.5)")["importe"], "3.00");
+    assert_eq!(one("POW(2, 3)")["importe"], "8.00");
+    assert_eq!(one("0^-1")["error"], true);
+    assert_eq!(one("(-8)^0.5")["error"], true);
+}
+
+#[test]
+fn funciones_matematicas_y_alias() {
+    assert_eq!(one("RAIZ(16) + SQRT(9)")["importe"], "7.00");
+    assert_eq!(one("RAIZ(-1)")["error"], true);
+    assert_eq!(one("REDONDEAR_ARRIBA(2.001)")["importe"], "3.00");
+    assert_eq!(one("CEIL(-2.9)")["importe"], "-2.00");
+    assert_eq!(one("REDONDEAR_ABAJO(2.999, 2)")["importe"], "2.99");
+    assert_eq!(one("FLOOR(-2.1)")["importe"], "-3.00");
+    assert_eq!(one("SUMA(1, 2, 3.5)")["importe"], "6.50");
+    assert_eq!(one("SUM(4)")["importe"], "4.00");
+    assert_eq!(one("PROMEDIO(1, 2, 3, 4)")["importe"], "2.50");
+    assert_eq!(one("AVERAGE(10, 20)")["importe"], "15.00");
+    assert_eq!(one("SIGNO(-7) + SIGN(0) * 10 + SIGNO(3) * 100")["importe"], "99.00");
+    assert_eq!(one("MOD(17, 5) + RESTO(-7, 3) * 10")["importe"], "-8.00"); // 2 + (-1)*10
+    assert_eq!(one("EXP(0) + LN(1) + LOG10(1000)")["importe"], "4.00");
+    assert_eq!(one("ROUND(LN(EXP(2)), 6)")["importe"], "2.00");
+    assert_eq!(one("REDONDEAR(2.345, 2)")["importe"], "2.35");
+}
+
+#[test]
+fn aridad_de_funciones_nuevas_se_valida() {
+    assert!(validar_formula_json("SUMA()", "[]").is_err());
+    assert!(validar_formula_json("MOD(1)", "[]").is_err());
+    assert!(validar_formula_json("RAIZ(1, 2)", "[]").is_err());
+    assert!(validar_formula_json("2^3 + RAIZ(16)", "[]").is_ok());
+}
+
+#[test]
+fn textos_con_comillas_escapadas() {
+    let r = run(
+        json!({"conceptos": [
+            {"codigo": "1", "formula_importe": "IF(NOMBRE = 'D''Angelo', 1, 2)"},
+            {"codigo": "2", "formula_importe": "IF(\"di \"\"x\"\"\" = 'di \"x\"', 1, 2)"},
+            {"codigo": "3", "formula_importe": "IF('' = '', 1, 2)"},
+        ]}),
+        ctx(json!({"NOMBRE": "D'Angelo"})),
+    );
+    assert_eq!(concepto(&r, "1")["importe"], "1.00");
+    assert_eq!(concepto(&r, "2")["importe"], "1.00");
+    assert_eq!(concepto(&r, "3")["importe"], "1.00");
+}
+
+// ------------------------------------------------------------ errores con tipo, posición y fragmento
+
+#[test]
+fn errores_de_evaluacion_con_detalle() {
+    let c = one("100 + 10 / (5 - 5)");
+    assert_eq!(c["error_detalle"], json!({"campo": "formula_importe", "tipo": "division_por_cero", "pos": 9}));
+    let msg = c["message"].as_str().unwrap();
+    assert!(msg.starts_with("formula_importe, posición 9 («100 + 10 ▶/ (5 - 5)»): División por cero"), "{msg}");
+
+    let c = one("HABER * RESP_X%");
+    assert_eq!(c["error_detalle"]["tipo"], "variable_no_definida");
+    assert_eq!(c["error_detalle"]["pos"], 0);
+
+    let c = one("1 + 'a'");
+    assert_eq!(c["error_detalle"]["tipo"], "tipo");
+    assert_eq!(c["error_detalle"]["pos"], 2);
+
+    let c = one("TABLA('NO_EXISTE', COL1 = 1, COL2)");
+    assert_eq!(c["error_detalle"]["tipo"], "sin_datos");
+
+    // error en la condición: se informa ese campo
+    let r = run(json!({"conceptos": [{"codigo": "1", "formula_condicion": "X > 1", "formula_importe": "1"}]}), ctx(json!({})));
+    assert_eq!(concepto(&r, "1")["error_detalle"]["campo"], "formula_condicion");
+
+    // sin error: detalle nulo; error de sintaxis: tipo sintaxis
+    assert_eq!(one("1")["error_detalle"], Value::Null);
+    assert_eq!(one("1 +")["error_detalle"]["tipo"], "sintaxis");
+}
+
+#[test]
+fn fragmento_de_formula_larga_se_recorta() {
+    let c = one("1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + NO_DEFINIDA + 9 + 10 + 11 + 12 + 13");
+    let msg = c["message"].as_str().unwrap();
+    assert!(msg.contains("(«… + 6 + 7 + 8 + ▶NO_DEFINIDA + 9…»)"), "{msg}");
+}
+
+// ------------------------------------------------------------ compilar una vez
+
+#[test]
+fn compilado_se_reutiliza_con_distintos_contextos() {
+    let reglas = json!({"conceptos": [
+        {"codigo": "10", "formula_importe": "TABLA('ESCALA', COL.CLASE = CLASE, COL.HABER)"},
+        {"codigo": "80", "formula_importe": "#10 * 2% * ANIOS_ANTIGUEDAD"},
+    ]}).to_string();
+    let comp = otp_formula::compilar_json(&reglas).unwrap();
+    let tabla = json!({"ESCALA": {"columnas": [{"nombre": "CLASE", "tipo": "int"}, {"nombre": "HABER", "tipo": "decimal"}],
+                                  "filas": [[1, "1000"], [2, "2000"]]}});
+    for (clase, anios) in [(1, 10), (2, 5), (1, 0)] {
+        let c = json!({"fecha": "2025-01-01", "variables": {"CLASE": clase, "ANIOS_ANTIGUEDAD": anios}, "tablas": tabla}).to_string();
+        let a = comp.calcular_json(&c).unwrap();
+        let b = calcular_json(&reglas, &c).unwrap();
+        assert_eq!(a, b);
+    }
+}

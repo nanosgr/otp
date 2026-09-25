@@ -1,4 +1,5 @@
 """Tests del wrapper Python del motor Rust (se omiten si el wheel no está instalado)."""
+import json
 from datetime import date
 from decimal import Decimal
 
@@ -42,3 +43,32 @@ def test_validacion():
 def test_tipo_no_serializable():
     with pytest.raises(TypeError):
         motor.calcular({"conceptos": []}, {"fecha": date(2025, 1, 1), "variables": {"X": object()}})
+
+
+def test_reglas_compiladas_equivalen_y_se_cachean():
+    reglas = {"conceptos": [
+        {"codigo": "1", "formula_importe": "X ^ 2 + RAIZ(16)"},
+        {"codigo": "2", "columna": "DESCUENTO", "formula_importe": "#1 * 10%"},
+    ]}
+    comp = motor.compilar(reglas)
+    motor._compilado.cache_clear()
+    for x in (1, 2, 3):
+        ctx = {"fecha": date(2025, 1, 1), "variables": {"X": Decimal(x)}}
+        r = motor.calcular(reglas, ctx)
+        assert r == json.loads(comp.calcular(motor._dumps(ctx)))
+        assert Decimal(r["conceptos"][0]["importe"]) == x * x + 4
+    info = motor._compilado.cache_info()
+    assert info.misses == 1 and info.hits == 2
+
+
+def test_error_de_reglas_al_compilar():
+    with pytest.raises(motor.FormulaError):
+        motor.compilar({"auxiliares": [{"codigo": "M", "formula": "'sin cerrar"}]})
+
+
+def test_error_detalle():
+    r = motor.calcular({"conceptos": [{"codigo": "1", "formula_importe": "10 / (X - 1)"}]},
+                       {"fecha": date(2025, 1, 1), "variables": {"X": 1}})
+    c = r["conceptos"][0]
+    assert c["error"] is True
+    assert c["error_detalle"] == {"campo": "formula_importe", "tipo": "division_por_cero", "pos": 3}

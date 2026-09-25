@@ -19,7 +19,7 @@ proptest! {
     }
 
     #[test]
-    fn la_evaluacion_nunca_entra_en_panico(s in "[0-9a-zA-Z_+*/()%,'#<>= .-]{0,40}") {
+    fn la_evaluacion_nunca_entra_en_panico(s in "[0-9a-zA-Z_+*/()%^,'#<>= .-]{0,40}") {
         let reglas = json!({"conceptos": [{"codigo": "1", "formula_importe": s, "formula_condicion": s}]});
         let ctx = json!({"fecha": "2025-01-01"});
         let _ = calcular_json(&reglas.to_string(), &ctx.to_string());
@@ -30,6 +30,19 @@ proptest! {
         let expected = a * b + c - a;
         let got = importe(&format!("({a}) * ({b}) + {c} - ({a})")).unwrap();
         prop_assert_eq!(got, format!("{expected}.00"));
+    }
+
+    #[test]
+    fn compilar_y_calcular_equivale_a_calcular(a in -1000i64..1000, b in 0i64..6, c in 1i64..50) {
+        let reglas = json!({"conceptos": [
+            {"codigo": "1", "formula_importe": format!("({a}) ^ {b} / {c} + X")},
+            {"codigo": "2", "formula_importe": "#1 * 2 + MOD(X, 7)"},
+        ]}).to_string();
+        let comp = otp_formula::compilar_json(&reglas).unwrap();
+        for x in [0, 5, 13] {
+            let ctx = json!({"fecha": "2025-01-01", "variables": {"X": x}}).to_string();
+            prop_assert_eq!(comp.calcular_json(&ctx).unwrap(), calcular_json(&reglas, &ctx).unwrap());
+        }
     }
 
     #[test]

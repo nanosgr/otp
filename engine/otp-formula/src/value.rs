@@ -1,4 +1,4 @@
-use crate::error::{FormulaError, Result};
+use crate::error::{FormulaError, Result, TipoError};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use std::str::FromStr;
@@ -36,28 +36,28 @@ impl Value {
     pub fn num(&self) -> Result<Decimal> {
         match self {
             Value::Num(n) => Ok(*n),
-            o => Err(FormulaError::eval(format!("Se esperaba un número y se obtuvo {}", o.type_name()))),
+            o => Err(FormulaError::of(TipoError::Tipo, format!("Se esperaba un número y se obtuvo {}", o.type_name()))),
         }
     }
 
     pub fn boolean(&self) -> Result<bool> {
         match self {
             Value::Bool(b) => Ok(*b),
-            o => Err(FormulaError::eval(format!("Se esperaba un booleano y se obtuvo {}", o.type_name()))),
+            o => Err(FormulaError::of(TipoError::Tipo, format!("Se esperaba un booleano y se obtuvo {}", o.type_name()))),
         }
     }
 
     pub fn text(&self) -> Result<&str> {
         match self {
             Value::Text(s) => Ok(s),
-            o => Err(FormulaError::eval(format!("Se esperaba un texto y se obtuvo {}", o.type_name()))),
+            o => Err(FormulaError::of(TipoError::Tipo, format!("Se esperaba un texto y se obtuvo {}", o.type_name()))),
         }
     }
 
     pub fn date(&self) -> Result<NaiveDate> {
         match self {
             Value::Date(d) => Ok(*d),
-            o => Err(FormulaError::eval(format!("Se esperaba una fecha y se obtuvo {}", o.type_name()))),
+            o => Err(FormulaError::of(TipoError::Tipo, format!("Se esperaba una fecha y se obtuvo {}", o.type_name()))),
         }
     }
 

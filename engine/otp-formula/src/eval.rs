@@ -1,10 +1,9 @@
-use crate::analysis::canonical;
 use crate::ast::{BinOp, Expr};
 use crate::context::Contexto;
-use crate::error::{FormulaError, Result};
+use crate::error::{FormulaError, Result, TipoError};
+use crate::functions::{buscar, division_por_cero, overflow, potencia, Impl};
 use crate::model::{Columna, ConceptoDef, ConceptoRes};
-use crate::value::{parse_date, Value};
-use chrono::Datelike;
+use crate::value::Value;
 use rust_decimal::{Decimal, RoundingStrategy};
 use std::cmp::Ordering;
 use std::collections::HashMap;
@@ -18,25 +17,14 @@ pub struct Env<'a> {
     pub scopes: Vec<HashMap<String, Value>>,
 }
 
-fn overflow() -> FormulaError {
-    FormulaError::eval("Desbordamiento numérico")
-}
-
 fn cmp_values(a: &Value, b: &Value) -> Result<Ordering> {
     match (a, b) {
         (Value::Num(x), Value::Num(y)) => Ok(x.cmp(y)),
         (Value::Text(x), Value::Text(y)) => Ok(x.cmp(y)),
         (Value::Date(x), Value::Date(y)) => Ok(x.cmp(y)),
         (Value::Bool(x), Value::Bool(y)) => Ok(x.cmp(y)),
-        _ => Err(FormulaError::eval(format!("No se puede comparar {} con {}", a.type_name(), b.type_name()))),
+        _ => Err(FormulaError::of(TipoError::Tipo, format!("No se puede comparar {} con {}", a.type_name(), b.type_name()))),
     }
-}
-
-fn round_to(n: Decimal, dp: i64) -> Result<Decimal> {
-    if !(0..=28).contains(&dp) {
-        return Err(FormulaError::eval("La cantidad de decimales debe estar entre 0 y 28"));
-    }
-    Ok(n.round_dp_with_strategy(dp as u32, RoundingStrategy::MidpointAwayFromZero))
 }
 
 pub fn round_half_up(n: Decimal, dp: u32) -> Decimal {
@@ -82,6 +70,35 @@ fn aggregate(op: &str, vals: Vec<Value>) -> Result<Value> {
     })
 }
 
+/// Operador binario sobre valores ya evaluados. Aparte de `Env::binary` para que el frame recursivo sea chico
+/// (la evaluación del árbol es recursiva y en debug cada frame grande limita la profundidad).
+#[inline(never)]
+fn aplicar(op: BinOp, l: Value, r: Value) -> Result<Value> {
+    match op {
+        BinOp::Add => match (&l, &r) {
+            (Value::Text(x), Value::Text(y)) => Ok(Value::Text(format!("{x}{y}"))),
+            _ => Ok(Value::Num(l.num()?.checked_add(r.num()?).ok_or_else(overflow)?)),
+        },
+        BinOp::Sub => Ok(Value::Num(l.num()?.checked_sub(r.num()?).ok_or_else(overflow)?)),
+        BinOp::Mul => Ok(Value::Num(l.num()?.checked_mul(r.num()?).ok_or_else(overflow)?)),
+        BinOp::Div => {
+            let d = r.num()?;
+            if d.is_zero() {
+                return Err(division_por_cero());
+            }
+            Ok(Value::Num(l.num()?.checked_div(d).ok_or_else(overflow)?))
+        }
+        BinOp::Pow => Ok(Value::Num(potencia(l.num()?, r.num()?)?)),
+        BinOp::Eq => Ok(Value::Bool(cmp_values(&l, &r)? == Ordering::Equal)),
+        BinOp::Ne => Ok(Value::Bool(cmp_values(&l, &r)? != Ordering::Equal)),
+        BinOp::Lt => Ok(Value::Bool(cmp_values(&l, &r)? == Ordering::Less)),
+        BinOp::Le => Ok(Value::Bool(cmp_values(&l, &r)? != Ordering::Greater)),
+        BinOp::Gt => Ok(Value::Bool(cmp_values(&l, &r)? == Ordering::Greater)),
+        BinOp::Ge => Ok(Value::Bool(cmp_values(&l, &r)? != Ordering::Less)),
+        BinOp::And | BinOp::Or => unreachable!(),
+    }
+}
+
 impl<'a> Env<'a> {
     fn lookup(&self, name: &str) -> Result<Value> {
         for s in self.scopes.iter().rev() {
@@ -95,7 +112,7 @@ impl<'a> Env<'a> {
         if let Some(v) = self.ctx.variables.get(name) {
             return Ok(v.clone());
         }
-        Err(FormulaError::eval(format!("Variable no definida: {name}")))
+        Err(FormulaError::of(TipoError::VariableNoDefinida, format!("Variable no definida: {name}")))
     }
 
     /// Resultado de un concepto referenciado. `None` = no está asignado en esta liquidación.
@@ -134,15 +151,15 @@ impl<'a> Env<'a> {
             Expr::Num(n) => Ok(Value::Num(*n)),
             Expr::Str(s) => Ok(Value::Text(s.clone())),
             Expr::Bool(b) => Ok(Value::Bool(*b)),
-            Expr::Var(v) => self.lookup(v),
+            Expr::Var { name, pos } => self.lookup(name).map_err(|e| e.con_pos(*pos)),
             Expr::Concept(c) => Ok(Value::Num(match self.result_of(c)? {
                 Some(r) if r.visible() => r.importe,
                 _ => Decimal::ZERO,
             })),
             Expr::Neg(x) => Ok(Value::Num(-self.eval(x)?.num()?)),
             Expr::Not(x) => Ok(Value::Bool(!self.eval(x)?.boolean()?)),
-            Expr::Bin(op, a, b) => self.binary(*op, a, b),
-            Expr::Call { name, args, .. } => self.call(name, args),
+            Expr::Bin { op, l, r, pos } => self.binary(*op, l, r).map_err(|e| e.con_pos(*pos)),
+            Expr::Call { name, args, pos } => self.call(name, args).map_err(|e| e.con_pos(*pos)),
         }
     }
 
@@ -158,28 +175,7 @@ impl<'a> Env<'a> {
         }
         let l = self.eval(a)?;
         let r = self.eval(b)?;
-        match op {
-            BinOp::Add => match (&l, &r) {
-                (Value::Text(x), Value::Text(y)) => Ok(Value::Text(format!("{x}{y}"))),
-                _ => Ok(Value::Num(l.num()?.checked_add(r.num()?).ok_or_else(overflow)?)),
-            },
-            BinOp::Sub => Ok(Value::Num(l.num()?.checked_sub(r.num()?).ok_or_else(overflow)?)),
-            BinOp::Mul => Ok(Value::Num(l.num()?.checked_mul(r.num()?).ok_or_else(overflow)?)),
-            BinOp::Div => {
-                let d = r.num()?;
-                if d.is_zero() {
-                    return Err(FormulaError::eval("División por cero"));
-                }
-                Ok(Value::Num(l.num()?.checked_div(d).ok_or_else(overflow)?))
-            }
-            BinOp::Eq => Ok(Value::Bool(cmp_values(&l, &r)? == Ordering::Equal)),
-            BinOp::Ne => Ok(Value::Bool(cmp_values(&l, &r)? != Ordering::Equal)),
-            BinOp::Lt => Ok(Value::Bool(cmp_values(&l, &r)? == Ordering::Less)),
-            BinOp::Le => Ok(Value::Bool(cmp_values(&l, &r)? != Ordering::Greater)),
-            BinOp::Gt => Ok(Value::Bool(cmp_values(&l, &r)? == Ordering::Greater)),
-            BinOp::Ge => Ok(Value::Bool(cmp_values(&l, &r)? != Ordering::Less)),
-            BinOp::And | BinOp::Or => unreachable!(),
-        }
+        aplicar(op, l, r)
     }
 
     fn eager(&mut self, args: &[Expr]) -> Result<Vec<Value>> {
@@ -194,56 +190,21 @@ impl<'a> Env<'a> {
     }
 
     fn call(&mut self, name: &str, args: &[Expr]) -> Result<Value> {
-        match canonical(name) {
+        let Some(f) = buscar(name) else {
+            return Err(FormulaError::of(TipoError::FuncionDesconocida, format!("Función desconocida: {name}")));
+        };
+        if args.len() < f.min || args.len() > f.max {
+            return Err(FormulaError::eval(format!("{name}: cantidad de argumentos inválida ({})", args.len())));
+        }
+        if let Impl::Pura(fun) = f.imp {
+            let vals = self.eager(args)?;
+            return fun(&vals);
+        }
+        let name = f.nombre;
+        match name {
             "IF" => {
                 if self.eval(&args[0])?.boolean()? { self.eval(&args[1]) } else { self.eval(&args[2]) }
             }
-            "ROUND" | "TRUNC" => {
-                let v = self.eager(args)?;
-                let n = v[0].num()?;
-                let dp = if v.len() > 1 { v[1].num()?.trunc().to_string().parse::<i64>().unwrap_or(-1) } else { 0 };
-                if canonical(name) == "ROUND" {
-                    Ok(Value::Num(round_to(n, dp)?))
-                } else {
-                    if !(0..=28).contains(&dp) {
-                        return Err(FormulaError::eval("La cantidad de decimales debe estar entre 0 y 28"));
-                    }
-                    Ok(Value::Num(n.trunc_with_scale(dp as u32)))
-                }
-            }
-            "MIN" | "MAX" => {
-                let nums: Result<Vec<Decimal>> = self.eager(args)?.iter().map(Value::num).collect();
-                let nums = nums?;
-                let r = if name == "MIN" { nums.into_iter().min() } else { nums.into_iter().max() };
-                Ok(Value::Num(r.expect("aridad validada")))
-            }
-            "ABS" => Ok(Value::Num(self.eager(args)?[0].num()?.abs())),
-            "FECHA" => match self.eval(&args[0])? {
-                Value::Date(d) => Ok(Value::Date(d)),
-                Value::Text(s) => Ok(Value::Date(parse_date(&s)?)),
-                o => Err(FormulaError::eval(format!("FECHA no acepta {}", o.type_name()))),
-            },
-            "ANIOS" | "MESES" | "DIAS" => {
-                let v = self.eager(args)?;
-                let (d1, d2) = (v[0].date()?, v[1].date()?);
-                let n = match name {
-                    "ANIOS" => {
-                        let mut y = d2.year() - d1.year();
-                        if (d2.month(), d2.day()) < (d1.month(), d1.day()) { y -= 1; }
-                        i64::from(y)
-                    }
-                    "MESES" => {
-                        let mut m = (d2.year() - d1.year()) * 12 + d2.month() as i32 - d1.month() as i32;
-                        if d2.day() < d1.day() { m -= 1; }
-                        i64::from(m)
-                    }
-                    _ => (d2 - d1).num_days(),
-                };
-                Ok(Value::Num(Decimal::from(n)))
-            }
-            "ANIO" => Ok(Value::Num(Decimal::from(self.eager(args)?[0].date()?.year()))),
-            "MES" => Ok(Value::Num(Decimal::from(self.eager(args)?[0].date()?.month()))),
-            "DIA" => Ok(Value::Num(Decimal::from(self.eager(args)?[0].date()?.day()))),
             "TABLA" => self.tabla(args),
             "HISTORIAL" | "EXISTE_HISTORIAL" => self.historial(name == "EXISTE_HISTORIAL", args),
             "EXISTE" => {
@@ -304,7 +265,7 @@ impl<'a> Env<'a> {
                 }
                 aggregate(op.text()?, vals)
             }
-            other => Err(FormulaError::eval(format!("Función desconocida: {other}"))),
+            other => unreachable!("función especial sin implementar: {other}"),
         }
     }
 
@@ -312,7 +273,7 @@ impl<'a> Env<'a> {
         let code = self.eval(&args[0])?;
         let code = code.text()?.to_uppercase();
         let ctx = self.ctx;
-        let tabla = ctx.tablas.get(&code).ok_or_else(|| FormulaError::eval(format!("Tabla no definida: {code}")))?;
+        let tabla = ctx.tablas.get(&code).ok_or_else(|| FormulaError::of(TipoError::SinDatos, format!("Tabla no definida: {code}")))?;
         for fila in &tabla.filas {
             let mut scope = HashMap::new();
             for (i, (nombre, v)) in tabla.columnas.iter().zip(fila).enumerate() {
@@ -330,7 +291,7 @@ impl<'a> Env<'a> {
         }
         match args.get(3) {
             Some(d) => self.eval(d),
-            None => Err(FormulaError::eval(format!("Valor no encontrado en la tabla {code}"))),
+            None => Err(FormulaError::of(TipoError::SinDatos, format!("Valor no encontrado en la tabla {code}"))),
         }
     }
 
@@ -353,7 +314,7 @@ impl<'a> Env<'a> {
         match (found, args.get(2)) {
             (Some(i), _) => Ok(i.valor.clone()),
             (None, Some(d)) => self.eval(d),
-            (None, None) => Err(FormulaError::eval(format!("Sin valor vigente de {campo} al {fecha}"))),
+            (None, None) => Err(FormulaError::of(TipoError::SinDatos, format!("Sin valor vigente de {campo} al {fecha}"))),
         }
     }
 }

@@ -1,22 +1,8 @@
 //! Análisis estático de expresiones: aridad de funciones, selectores y referencias.
 use crate::ast::Expr;
 use crate::error::FormulaError;
+use crate::functions::buscar;
 use std::collections::BTreeSet;
-
-/// (nombre, mínimo de argumentos, máximo)
-pub const FUNCTIONS: &[(&str, usize, usize)] = &[
-    ("IF", 3, 3), ("SI", 3, 3),
-    ("ROUND", 1, 2), ("REDONDEAR", 1, 2), ("TRUNC", 1, 2),
-    ("MIN", 1, usize::MAX), ("MAX", 1, usize::MAX),
-    ("ABS", 1, 1),
-    ("FECHA", 1, 1), ("ANIOS", 2, 2), ("MESES", 2, 2), ("DIAS", 2, 2),
-    ("ANIO", 1, 1), ("MES", 1, 1), ("DIA", 1, 1),
-    ("TABLA", 3, 4),
-    ("HISTORIAL", 1, 3), ("EXISTE_HISTORIAL", 1, 2),
-    ("EXISTE", 1, 1), ("UNIDAD_CONCEPTO", 1, 1), ("IMPORTE_CONCEPTO", 1, 1), ("UNITARIO_CONCEPTO", 1, 1),
-    ("TOTAL", 1, usize::MAX),
-    ("CONCEPTOS", 3, 3), ("BENEFICIARIOS", 3, 3),
-];
 
 pub const AGG_OPS: &[&str] = &["+", "*", "MAX", "MIN", "AVG", "AND", "OR", "COUNT"];
 
@@ -40,38 +26,31 @@ pub struct Refs {
     pub historial: BTreeSet<String>,
 }
 
-pub fn canonical(name: &str) -> &str {
-    match name {
-        "SI" => "IF",
-        "REDONDEAR" => "ROUND",
-        other => other,
-    }
-}
-
 pub fn collect(e: &Expr, r: &mut Refs, errors: &mut Vec<FormulaError>) {
     match e {
         Expr::Num(_) | Expr::Str(_) | Expr::Bool(_) => {}
-        Expr::Var(v) => {
-            r.vars.insert(v.clone());
+        Expr::Var { name, .. } => {
+            r.vars.insert(name.clone());
         }
         Expr::Concept(c) => {
             r.concepts.insert(c.clone());
         }
         Expr::Neg(x) | Expr::Not(x) => collect(x, r, errors),
-        Expr::Bin(_, a, b) => {
-            collect(a, r, errors);
-            collect(b, r, errors);
+        Expr::Bin { l, r: rhs, .. } => {
+            collect(l, r, errors);
+            collect(rhs, r, errors);
         }
         Expr::Call { name, args, pos } => {
-            let Some(&(_, min, max)) = FUNCTIONS.iter().find(|(n, _, _)| n == name) else {
+            let Some(f) = buscar(name) else {
                 errors.push(FormulaError::syntax(*pos, format!("Función desconocida: {name}")));
                 args.iter().for_each(|a| collect(a, r, errors));
                 return;
             };
+            let (min, max) = (f.min, f.max);
             if args.len() < min || args.len() > max {
                 errors.push(FormulaError::syntax(*pos, format!("{name} espera entre {min} y {} argumentos y recibió {}", if max == usize::MAX { "N".to_string() } else { max.to_string() }, args.len())));
             }
-            match canonical(name) {
+            match f.nombre {
                 "TOTAL" => {
                     if let Some(Expr::Str(sel)) = args.first() {
                         let mut s = Selector { name: sel.to_uppercase(), excluded: BTreeSet::new() };
