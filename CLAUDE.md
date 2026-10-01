@@ -8,7 +8,7 @@ online-otp: sistema de liquidación de jubilaciones/retiros y pensiones del pers
 
 Base: plantilla RBAC (usuarios, roles, permisos, scoping, auditoría, JWT). Las reglas de negocio (conceptos, escalas por vigencia, tablas, parámetros) son datos configurables evaluados por el motor Rust. Referencias: `planillas_matriz/` (Excel actuales de la oficina) y el motor NG en `../varios/NG/decompilado/ns.nacional.sueldo*`. El plan de implementación vigente está en `~/.claude/plans/este-es-el-inicio-sleepy-quiche.md`.
 
-**Estado:** Fases 0 a 4 completas para retiro y pensión con uno o más cargos (secuencias) y reglas de mayo 2022 en adelante. Pendiente: reajustes, acrecimientos, haberes devengados, reglas anteriores a 2022-05 (ver "Fuera de alcance" abajo). Alembic es la única fuente del esquema.
+**Estado:** Fases 0 a 4 completas para retiro y pensión con uno o más cargos (secuencias) y reglas de mayo 2022 en adelante; liquidación proyectada de renuncia/baja condicionada (policía y penitenciaría) con cómputo de servicios, encasillamiento y anexo de zona. Pendiente: reajustes, acrecimientos, haberes devengados, reglas anteriores a 2022-05 (ver "Fuera de alcance" abajo). Alembic es la única fuente del esquema.
 
 ## Development Commands
 
@@ -225,6 +225,17 @@ Configuration is loaded via Pydantic Settings in `app/core/config.py`.
 - **Reportes:** `GET /liquidaciones/{id}/planilla.xlsx|pdf` (`services/reportes.py`). Frontend: `/liquidaciones/:id/planilla` (`pages/LiquidacionPlanilla.tsx`).
 - **Paridad con Excel (Fase 4):** `tests/golden/casos_planilla.json` se genera con `python scripts/golden_planilla.py <xlsx convertido>`: carga cada caso en `DATOS`, recalcula la planilla original con LibreOffice y guarda los valores esperados (no salen del motor propio). `tests/test_golden_planillas.py` los compara mes por mes, SAC, subtotal, descuentos y líquido (4 casos: 3 retiros, 1 pensión con art. 37). Para dos cargos: `python scripts/golden_dos_cargos.py <BASE DE CALCULOS PENSION 2 CARGOS convertido>` → `tests/golden/casos_dos_cargos.json` (2 casos, hoja `LIQUIDACION `, jul/2022-dic/2024) y `tests/test_golden_dos_cargos.py`. Los helpers comunes están en `tests/golden_utils.py`. Para convertir el .xls: `soffice --headless --convert-to xlsx <archivo.xls>`.
 
+## Liquidación proyectada (renuncia / baja condicionada)
+
+- **Fuente:** `~/Documentos/varios/otp/10_liquidaciones_complejas_OTP_Retiros/liquidaciones_complejas_OTP_retiros.xlsx` (10 casos transcriptos de PDF; 3 policía, 7 penitenciaría). `python scripts/import_casos_proyectados.py <xlsx>` genera `seed_data/casos_proyectados.json` (datos + valores esperados) y `seed_data/reglas_proyectadas.json` (escalas/parámetros **parciales y provisorios**: penit. 04/2022, 07/2022, 09/2025; policía 05/2026; vigencia de un mes cada una). `seed_reglas` los carga (`seed_proyectadas`); `python -m app.db.seed_casos_proyectados [--force]` crea los 10 causantes con su liquidación calculada.
+- **Datos (puntos 1-4):** `Causante` (expediente, cuil, grado, cuerpo, renuncia condicionada, cuadro de servicio, `escalafon` policia|penitenciario); `ComputoServicio` (filas A/M/D; `services/computo.py` suma con año 360 / mes 30 y da la antigüedad final = años + 1 si meses ≥ 6); `CargoSecuencia` (imputación: unidad organizativa, R.S., A., T., ST., `zona_cargo_base`); `EncasillamientoItem` (código → valor 0-100 o cantidad; `aplica=False` = "-", `valor=None` = "$").
+- **Motor:** el encasillamiento llega como `contexto.campos` (`CAMPO_UNIDAD`, y `CAMPO_PRESENTE` = el concepto está encasillado). Con encasillamiento (`ENCASILLADO`) solo se liquida lo encasillado; sin él, todo lo vigente (planillas de retroactivos, sin cambios). Los conceptos del haber tienen unidad (%/cant.), unitario (base) e importe; `recibo_conceptos.unitario` guarda la base.
+- **Escalafón:** `Concepto.escalafon` (único `codigo+escalafon`); `ReglasDB(db, escalafon)` carga solo ese juego y corta tramos solo por las tablas/parámetros que sus fórmulas referencian. Penitenciario: tablas/parámetros con sufijo `_PEN` (`ESCALA_CLASE_PEN`, `BASE_JEFE_PEN`, `MONTO_xx_PEN`…); 026/027/031/052 sobre la propia clase, 90 sin el 066 en la base.
+- **Zona:** `services/zona.py` desde `zonas_destino`: días = hasta − desde, años perm. = entero de días/365, % zona / (25 subalterno | 30 superior) × años perm.; total redondeado a 2 decimales de fracción; < 1% no se paga. Si el causante tiene destinos, reemplaza al `zona_porcentaje` manual (`ZONA_PORC`).
+- **% de retiro:** tabla por `ANTIGUEDAD_FINAL` (cómputo; sin cómputo, `anios_antiguedad` del cargo). El 080 usa los años del encasillamiento, no la antigüedad final.
+- **Liquidación:** `Liquidacion.modalidad = "proyectada"` (+ `asunto`): un cálculo al 1° del `periodo` (mes base salarial), etapas haber y beneficio, sin SAC ni descuentos; el snapshot del recibo guarda cómputo, zona y encasillamiento. `GET /causantes/{id}/ficha` (página `pages/CausanteFicha.tsx`, `/causantes/:id/ficha`); la planilla (`LiquidacionPlanilla.tsx` + `components/prevision/ProyectadaContent.tsx`) y `planilla.xlsx|pdf` cambian según la modalidad.
+- **Paridad:** `tests/test_golden_proyectadas.py` (10 casos: importe por concepto ±0,01, total y haber de retiro ±0,03, % retiro, antigüedad final, zona).
+
 ### Supuestos a confirmar con la oficina técnico previsional
 1. Tabla de % de retiro: 25 años → personal **subalterno**, 30 años → **superior** (`DATOS!J:K` y `M:N`); es una inferencia.
 2. SAC: se calcula tras cada 30/06 y 31/12 dentro del rango; la planilla de ejemplo no lo muestra antes de dic/2015 y en semestres parciales usamos proporcional. Un parámetro `SAC_APLICA` no existe todavía.
@@ -233,6 +244,10 @@ Configuration is loaded via Pydantic Settings in `app/core/config.py`.
 5. Clase 19 no está en la escala vigente de la planilla (queda como error de cálculo explícito).
 6. Con varios cargos, el % de retiro y los años para su tabla salen del cargo principal (secuencia menor); la planilla de dos cargos solo trae un % de retiro global. Los porcentajes de secuencia deben sumar exactamente 100 (la planilla muestra la suma en `DATOS!F68` pero no la valida).
 7. En dos cargos, cada secuencia usa sus propios `anios_antiguedad` para el 2% por año de antigüedad; no está claro si en la práctica son años propios de la secuencia o la antigüedad final del causante.
+8. Proyectada: escalas penitenciarias y policía 05/2026 cargadas solo con las clases que aparecen en los casos (otra clase da error explícito); faltan las escalas oficiales completas.
+9. Clases penitenciarias de cargos base de zona inferidas por importe: Agente = 1, Sub-oficial ayudante = 3, Alcaide mayor = 13. El cargo base de zona se carga a mano (no se encontró la regla que lo deriva).
+10. Zona: el mínimo del 1% se aplica sobre el total del anexo; OLMEDO rotula "/25" pero calcula con /30 (superior): se usa el divisor según tipo de personal.
+11. Concepto 100 (tiempo mínimo en el grado, penitenciario): fórmula desconocida; toma `CAMPO_IMPORTE` (0 en los casos). La base del 024 penitenciario de 04/2022 (44.364,37) no es la base jefe: parámetro `BASE_TITULO_PEN`.
 
 ### Errores detectados en la planilla original (no se replican)
 - `B1 `: filas de feb y ago 2023 suman dos veces la misma celda (`='2023'!J68+'2023'!J68`).
@@ -240,10 +255,11 @@ Configuration is loaded via Pydantic Settings in `app/core/config.py`.
 - `B2!D122:D124` calculan el OSEP sobre `B3!F118` en lugar de su propio subtotal.
 - `Pension Sin Coopart!A111` referencia el retiro (`'2025'!E45`) y no la pensión (`E46`).
 - Fechas de texto inválidas en `Planilla Retiro` (`31/04/2014`, `31/06/2020`) y `31/11/2024` en `LIQUIDACION `.
+- **Liquidaciones proyectadas:** BERON trae 064 = 848,28 y la planilla de retroactivos 07/2022, 848,25 (se tolera en el golden); en CORRENTI el total del PDF es 0,0235 menor que la suma sin redondear. GARAY tiene visado negativo de ANSES (no se liquidó el título, art. 94 inc. d): se reproduce como se emitió.
 - **Planilla de 2 cargos:** las hojas `B1`/`B2` tienen el subtotal roto (`=SUM(#REF!)`); la base de zona (concepto 83) quedó con la escala vieja en abr-may/2023 y con un valor mal tipeado en jul/2024 (clase 5); "Aumento Marzo/2010" quedó en 8110,48 en nov/2024 (correcto: 8345,57). `scripts/golden_dos_cargos.py` corrige esas celdas en la copia de trabajo y las informa en el JSON.
 
 ### Fuera de alcance por ahora
-Reajustes y acrecimientos, haberes devengados y no percibidos, anticipos con cooparticipes, reglas anteriores a 2022-05 (el importador y el modelo lo soportan; falta cargar/verificar las hojas antiguas, cuyo formato difiere), cálculo automático de zona y de antigüedad final desde los períodos de servicio.
+Reajustes y acrecimientos, haberes devengados y no percibidos, anticipos con cooparticipes, reglas anteriores a 2022-05 (el importador y el modelo lo soportan; falta cargar/verificar las hojas antiguas, cuyo formato difiere), cálculo del cómputo de servicios desde las fechas (hoy se cargan años/meses/días), pensión y retroactivos penitenciarios (solo existe `HABER_RETIRO` en ese escalafón).
 
 ## Key Design Patterns
 

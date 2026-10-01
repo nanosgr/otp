@@ -214,8 +214,11 @@ def test_clase_inexistente_en_la_escala_es_error_de_calculo(db, client, admin):
 
 def test_reglas_sembradas_son_validas_para_el_motor(db, client):
     from app.api.prevision import reglas_desde_db
-    problemas = motor.validar_reglas(reglas_desde_db(db))
-    assert [p for p in problemas if p["nivel"] == "error"] == []
+    for escalafon in ("policia", "penitenciario"):
+        reglas = reglas_desde_db(db, escalafon)
+        assert reglas["conceptos"], escalafon
+        problemas = motor.validar_reglas(reglas)
+        assert [p for p in problemas if p["nivel"] == "error"] == [], escalafon
 
 
 def test_planillas_xlsx_y_pdf(db, client, admin):
@@ -333,3 +336,37 @@ def test_planillas_con_dos_cargos_muestran_el_haber_ponderado(db, client, admin)
     assert {det[f"A{r}"].value for r in range(4, det.max_row + 1)} >= {1, 2, "Beneficio"}
     p = client.get(f"/api/v1/liquidaciones/{liq.id}/planilla.pdf", headers=admin)
     assert p.status_code == 200 and p.content.startswith(b"%PDF")
+
+
+def test_liquidacion_proyectada_por_api(db, client, admin, liquidador):
+    """Ficha (puntos 1-4 + zona), cálculo proyectado y planilla con un caso relevado (GARAY, penitenciario)."""
+    import io
+    import json
+    import openpyxl
+    from app.db.seed_casos_proyectados import DATA, cargar_caso
+    caso = next(c for c in json.loads(DATA.read_text(encoding="utf-8"))["casos"] if c["hoja"] == "GARAY GOMEZ")
+    liq = cargar_caso(db, caso, calcular=False)
+
+    f = client.get(f"/api/v1/causantes/{liq.causante_id}/ficha", headers=liquidador).json()
+    assert f["causante"]["escalafon"] == "penitenciario"
+    assert f["computo"]["totales"]["antiguedad_final"] == 26
+    assert f["zona"]["porcentaje_aplicado"] == "3.00"
+    assert {e["codigo"] for e in f["cargos"][0]["encasillamiento"]} >= {"10", "26", "27", "58"}
+
+    res = client.post(f"/api/v1/liquidaciones/{liq.id}/calcular", headers=liquidador).json()
+    pr = res["recibos"][0]["proyectada"]
+    assert res["liquidacion"]["modalidad"] == "proyectada" and res["recibos"][0]["tramos"] == []
+    assert Decimal(pr["porcentaje_retiro"]) == 88
+    assert abs(Decimal(pr["haber_retiro"]) - Decimal("133069.92")) < Decimal("0.01")
+    assert Decimal(res["liquidacion"]["total_debitos"]) == 0
+
+    x = client.get(f"/api/v1/liquidaciones/{liq.id}/planilla.xlsx", headers=admin)
+    ws = openpyxl.load_workbook(io.BytesIO(x.content))["Proyectada 1"]
+    textos = [c.value for fila in ws.iter_rows() for c in fila if isinstance(c.value, str)]
+    assert "5. LIQUIDACIÓN PROYECTADA" in textos and "ANEXO — ZONA INHÓSPITA / DESFAVORABLE" in textos
+    assert client.get(f"/api/v1/liquidaciones/{liq.id}/planilla.pdf", headers=admin).content[:4] == b"%PDF"
+
+    # encasillamiento y cómputo por la API genérica
+    r = client.get(f"/api/v1/encasillamiento/?cargo_id={f['cargos'][0]['id']}", headers=liquidador)
+    assert r.status_code == 200 and r.json()["total"] == len(caso["encasillamiento"])
+    assert client.get(f"/api/v1/computo-servicios/?causante_id={liq.causante_id}", headers=liquidador).json()["total"] == 4

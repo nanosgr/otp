@@ -39,6 +39,14 @@ TITULOS = "^(ninguno|pregrado|grado|posgrado)$"
 T_TITULOS = Annotated[str, StringConstraints(pattern=TITULOS)]
 ETAPAS = "^(haber|beneficio|liquidacion)$"
 T_ETAPAS = Annotated[str, StringConstraints(pattern=ETAPAS)]
+ESCALAFONES = "^(policia|penitenciario)$"
+T_ESCALAFONES = Annotated[str, StringConstraints(pattern=ESCALAFONES)]
+MODALIDADES = "^(retroactivo|proyectada)$"
+T_MODALIDADES = Annotated[str, StringConstraints(pattern=MODALIDADES)]
+CONCEPTOS_COMPUTO = "^(cuadro_servicio|hasta_renuncia|servicios_adicionales|beneficio_titulo|suspensiones)$"
+T_CONCEPTOS_COMPUTO = Annotated[str, StringConstraints(pattern=CONCEPTOS_COMPUTO)]
+TRAMOS = "^(01|02)$"
+T_TRAMOS = Annotated[str, StringConstraints(pattern=TRAMOS)]
 PERIODO = r"^\d{4}-(0[1-9]|1[0-2])$"
 T_PERIODO = Annotated[str, StringConstraints(pattern=PERIODO)]
 
@@ -68,8 +76,17 @@ class CausanteBase(SQLModel):
     fecha_fallecimiento: Optional[date] = None
     fecha_ingreso: Optional[date] = None
     fecha_egreso: Optional[date] = None
-    escalafon: Optional[str] = None
+    escalafon: T_ESCALAFONES = "policia"
     tipo_personal: T_TIPOS_PERSONAL = "subalterno"
+    # 1. Datos del expediente (liquidación proyectada de retiro)
+    cuil: Optional[str] = None
+    grado: Optional[str] = None
+    cuerpo: Optional[str] = None
+    condicion: Optional[str] = None
+    familia: Optional[str] = None
+    fecha_renuncia_condicionada: Optional[date] = None
+    cuadro_servicio_desde: Optional[date] = None
+    cuadro_servicio_hasta: Optional[date] = None
     is_active: bool = True
 
 
@@ -109,7 +126,7 @@ class CargoSecuenciaBase(SQLModel):
     secuencia: int = 1
     # peso de la secuencia en el haber ponderado (DATOS: "PORCENTAJE DE SECUENCIAS"); la suma de los cargos debe ser 100
     porcentaje_secuencia: Decimal = _money(Decimal("100"))
-    clase: int = Field(default=2, ge=2, le=27)
+    clase: int = Field(default=2, ge=1, le=27)
     fecha_desde: Optional[date] = None
     fecha_hasta: Optional[date] = None
     # porcentajes tal como se cargan en la hoja DATOS (0-100)
@@ -120,20 +137,70 @@ class CargoSecuenciaBase(SQLModel):
     riesgo_especial: bool = False
     zona_porcentaje: Decimal = _money()
     zona_clase: int = Field(default=0, ge=0, le=27)
+    # cargo cuya clase es la base de la zona (anexo de zona), solo informativo
+    zona_cargo_base: Optional[str] = None
     anios_antiguedad: Decimal = _money()
     presentismo: bool = False
     cuerpo_apoyo_porcentaje: Decimal = _money()
     adicional_seguridad: bool = False
     eventos_especiales: bool = False
     porcentaje_retiro: Decimal = _money()
+    # 3. Imputación / codificación previsional
+    grado: Optional[str] = None
     caracter: Optional[str] = None
     jurisdiccion: Optional[str] = None
+    unidad_organizativa: Optional[str] = None
     finalidad: Optional[str] = None
     funcion: Optional[str] = None
+    regimen_salarial: Optional[str] = None   # R.S.: 36 policía, 37 penitenciaría
+    agrupamiento: Optional[str] = None       # A.: 1 seguridad, 2 administrativo
+    tramo: Optional[T_TRAMOS] = None         # T.: 01 subalterno, 02 superior
+    subtramo: Optional[str] = None           # ST.: según clase
 
 
 class CargoSecuencia(CargoSecuenciaBase, table=True):
     __tablename__ = "cargos_secuencia"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    created_at: Optional[datetime] = _created_at()
+    updated_at: Optional[datetime] = _updated_at()
+
+
+class EncasillamientoItemBase(SQLModel):
+    """4. Encasillamiento definitivo: valor por concepto del cargo. Llega al motor como `campos[codigo].unidad`.
+
+    `aplica=False` es el "-" de la planilla; `aplica=True` sin valor es el "$" (aplica el monto fijo).
+    """
+    cargo_id: int = Field(foreign_key="cargos_secuencia.id", index=True, ondelete="CASCADE")
+    codigo: str
+    descripcion: Optional[str] = None
+    valor: Optional[Decimal] = Field(default=None, sa_type=Numeric(18, 4))
+    aplica: bool = True
+    orden: int = 0
+
+
+class EncasillamientoItem(EncasillamientoItemBase, table=True):
+    __tablename__ = "encasillamiento"
+    __table_args__ = (UniqueConstraint("cargo_id", "codigo", name="uq_encasillamiento_cargo_codigo"),)
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    created_at: Optional[datetime] = _created_at()
+    updated_at: Optional[datetime] = _updated_at()
+
+
+class ComputoServicioBase(SQLModel):
+    """2. Cómputo de servicios: una fila por concepto (años/meses/días); los totales se calculan (services/computo.py)."""
+    causante_id: int = Field(foreign_key="causantes.id", index=True, ondelete="CASCADE")
+    concepto: T_CONCEPTOS_COMPUTO = "cuadro_servicio"
+    anios: int = 0
+    meses: int = 0
+    dias: int = 0
+    observacion: Optional[str] = None
+    orden: int = 0
+
+
+class ComputoServicio(ComputoServicioBase, table=True):
+    __tablename__ = "computo_servicios"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: Optional[datetime] = _created_at()
@@ -185,7 +252,9 @@ class ConceptoGrupoLink(SQLModel, table=True):
 
 
 class ConceptoBase(SQLModel):
-    codigo: str = Field(index=True, unique=True)
+    codigo: str = Field(index=True)
+    # juego de reglas: el liquidador pasa al motor solo los conceptos del escalafón del causante
+    escalafon: T_ESCALAFONES = "policia"
     descripcion: str
     columna: T_COLUMNAS_CONCEPTO = "REMUNERATIVO"
     formula_unidad: Optional[str] = None
@@ -204,6 +273,7 @@ class ConceptoBase(SQLModel):
 
 class Concepto(ConceptoBase, table=True):
     __tablename__ = "conceptos"
+    __table_args__ = (UniqueConstraint("codigo", "escalafon", name="uq_conceptos_codigo_escalafon"),)
 
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: Optional[datetime] = _created_at()
@@ -318,6 +388,9 @@ class LiquidacionBase(SQLModel):
     causante_id: int = Field(foreign_key="causantes.id", index=True)
     periodo: T_PERIODO = Field(index=True)
     tipo: T_TIPOS_LIQUIDACION = "retiro"
+    # "proyectada": haber de un mes base (periodo) x % de retiro, sin retroactivo, SAC ni descuentos
+    modalidad: T_MODALIDADES = "retroactivo"
+    asunto: Optional[str] = None
     estado: T_ESTADOS_LIQUIDACION = "ABIERTA"
     fecha_desde: Optional[date] = None
     fecha_hasta: Optional[date] = None
@@ -371,6 +444,7 @@ class ReciboConceptoBase(SQLModel):
     descripcion: str
     columna: T_COLUMNAS_CONCEPTO = "REMUNERATIVO"
     unidad: Optional[Decimal] = Field(default=None, sa_type=Numeric(18, 4))
+    unitario: Optional[Decimal] = Field(default=None, sa_type=Numeric(18, 4))
     importe: Optional[Decimal] = Field(default=None, sa_type=Numeric(18, 4))
     condicion: Optional[bool] = None
     warning: bool = False

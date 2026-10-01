@@ -280,8 +280,10 @@ fn fallo_eval(def: &ConceptoDef, campo: &'static str, e: FormulaError) -> Concep
 }
 
 fn eval_concept(def: &ConceptoDef, c: &Compiled, env: &mut Env) -> std::result::Result<ConceptoRes, (&'static str, FormulaError)> {
-    let campos = env.ctx.campos.get(&def.codigo).cloned().unwrap_or_default();
+    let presente = env.ctx.campos.contains_key(&def.codigo.to_uppercase());
+    let campos = env.ctx.campos.get(&def.codigo.to_uppercase()).cloned().unwrap_or_default();
     let mut base = HashMap::new();
+    base.insert("CAMPO_PRESENTE".to_string(), Value::Bool(presente));
     base.insert("CAMPO_UNIDAD".to_string(), Value::Num(campos.unidad.unwrap_or_default()));
     base.insert("CAMPO_IMPORTE".to_string(), Value::Num(campos.importe.unwrap_or_default()));
     env.scopes = vec![base];

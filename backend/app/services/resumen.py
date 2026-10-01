@@ -45,12 +45,16 @@ def armar_resumen(db: Session, liquidacion_id: int) -> Dict[str, Any]:
             "cargos": [{"secuencia": t["secuencia"], "porcentaje": _f(t["porcentaje"]), "total": _f(t["total"])}
                        for t in snap.get("totales_cargos_actual", [])],
             "conceptos_haber": [{"codigo": c.codigo, "descripcion": c.descripcion, "columna": c.columna, "secuencia": c.secuencia,
-                                 "unidad": None if c.unidad is None else _f(c.unidad), "importe": _f(c.importe)}
+                                 "unidad": None if c.unidad is None else _f(c.unidad),
+                                 "unitario": None if c.unitario is None else _f(c.unitario), "importe": _f(c.importe)}
                                 for c in conceptos if c.codigo not in _CODIGOS_LIQUIDACION],
         })
+        if liq.modalidad == "proyectada":
+            out_recibos[-1]["proyectada"] = _proyectada(snap, conceptos)
     return {
         "liquidacion": {
             "id": liq.id, "periodo": liq.periodo, "tipo": liq.tipo, "estado": liq.estado,
+            "modalidad": liq.modalidad, "asunto": liq.asunto,
             "fecha_desde": liq.fecha_desde.isoformat() if liq.fecha_desde else None,
             "fecha_hasta": liq.fecha_hasta.isoformat() if liq.fecha_hasta else None,
             "fecha_pago": liq.fecha_pago.isoformat() if liq.fecha_pago else None,
@@ -59,8 +63,8 @@ def armar_resumen(db: Session, liquidacion_id: int) -> Dict[str, Any]:
             "calculada_at": liq.calculada_at.isoformat() if liq.calculada_at else None,
             "observaciones": liq.observaciones,
         },
-        "causante": {"id": causante.id, "dni": causante.dni, "apellido": causante.apellido, "nombre": causante.nombre,
-                     "expediente": causante.expediente, "tipo_personal": causante.tipo_personal},
+        "causante": {"id": causante.id, **{k: (v.isoformat() if hasattr(v, "isoformat") else v)
+                                           for k, v in ((k, getattr(causante, k)) for k in m.CausanteBase.model_fields)}},
         "recibos": out_recibos,
     }
 
@@ -69,3 +73,18 @@ def armar_resumen(db: Session, liquidacion_id: int) -> Dict[str, Any]:
 _CODIGOS_LIQUIDACION = {
     "CREDITO_RETROACTIVO", "DESC_LEY_FEDERAL", "DESC_OSEP_CUOTA", "DESC_OSEP_DIRECTO", "DESC_OSEP_INCAPACIDAD", "ANTICIPO",
 }
+
+
+def _proyectada(snap: Dict[str, Any], conceptos: List[m.ReciboConcepto]) -> Dict[str, Any]:
+    """Puntos 1-5 y anexo de zona de la liquidación proyectada (a partir del snapshot del recibo)."""
+    retiro = next((c for c in conceptos if c.codigo == "HABER_RETIRO"), None)
+    cargos = snap.get("cargos") or []
+    return {
+        "computo": snap.get("computo"),
+        "imputacion": cargos[0] if cargos else None,
+        "encasillamiento": (snap.get("encasillamiento") or {}).get(str(cargos[0]["secuencia"])) if cargos else [],
+        "zona": snap.get("zona"),
+        "porcentaje_retiro": None if retiro is None or retiro.unidad is None else _f(retiro.unidad),
+        "total_haberes": None if retiro is None or retiro.unitario is None else _f(retiro.unitario),
+        "haber_retiro": None if retiro is None else _f(retiro.importe),
+    }

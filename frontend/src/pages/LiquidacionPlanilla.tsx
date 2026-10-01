@@ -9,9 +9,10 @@ import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import ErrorAlert from '@/components/common/ErrorAlert';
 import ProtectedComponent from '@/components/common/ProtectedComponent';
+import ProyectadaContent, { type Proyectada } from '@/components/prevision/ProyectadaContent';
 
 interface Tramo { desde: string; hasta: string; descripcion: string | null; haber_mensual: string; meses: string; importe: string; es_sac: boolean }
-interface Concepto { codigo: string; descripcion: string; columna: string; secuencia: number | null; unidad: string | null; importe: string }
+interface Concepto { codigo: string; descripcion: string; columna: string; secuencia: number | null; unidad: string | null; unitario: string | null; importe: string }
 interface CargoTotal { secuencia: number; porcentaje: string; total: string }
 interface Persona { apellido: string; nombre: string; dni?: string | null; parentesco?: string; porcentaje?: string | number; art37?: boolean }
 interface Recibo {
@@ -27,13 +28,14 @@ interface Recibo {
   conceptos_haber: Concepto[];
   cargos: CargoTotal[];
   haber_ponderado: string | null;
+  proyectada?: Proyectada;
 }
 interface Resumen {
   liquidacion: {
-    id: number; periodo: string; tipo: string; estado: string; fecha_desde: string | null; fecha_hasta: string | null;
+    id: number; periodo: string; tipo: string; estado: string; modalidad: string; asunto: string | null; fecha_desde: string | null; fecha_hasta: string | null;
     total_credito: string; total_debitos: string; total_liquido: string; calculada_at: string | null; anticipo_importe: string;
   };
-  causante: Persona & { expediente: string | null };
+  causante: Persona & { id: number; expediente: string | null; escalafon?: string; grado?: string | null };
   recibos: Recibo[];
 }
 
@@ -101,12 +103,16 @@ export default function LiquidacionPlanilla() {
 
   const liq = data?.liquidacion;
   const abierta = liq?.estado === 'ABIERTA';
+  const proyectada = liq?.modalidad === 'proyectada';
 
   return (
-    <DashboardLayout title="Planilla de liquidación">
+    <DashboardLayout title={proyectada ? 'Liquidación proyectada' : 'Planilla de liquidación'}>
       <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link to="/liquidaciones" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">← Liquidaciones</Link>
+          <div className="flex gap-4">
+            <Link to="/liquidaciones" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">← Liquidaciones</Link>
+            {data && <Link to={`/causantes/${data.causante.id}/ficha`} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">Ficha del causante</Link>}
+          </div>
           {liq && (
             <div className="flex flex-wrap gap-2">
               <ProtectedComponent permissions={['liquidaciones:update']}>
@@ -140,6 +146,17 @@ export default function LiquidacionPlanilla() {
 
         {data && liq && (
           <>
+            {proyectada ? (
+              <Card title={`${liq.asunto || 'LIQUIDACIÓN PROYECTADA'} · base salarial ${liq.periodo} · ${liq.estado}`}>
+                <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div><dt className="text-xs text-stone-500">Causante</dt><dd>{data.causante.apellido}, {data.causante.nombre}</dd></div>
+                  <div><dt className="text-xs text-stone-500">DNI / Expte.</dt><dd>{data.causante.dni} / {data.causante.expediente ?? '—'}</dd></div>
+                  <div><dt className="text-xs text-stone-500">Cargo / escalafón</dt><dd>{data.causante.grado ?? '—'} · {data.causante.escalafon}</dd></div>
+                  <div><dt className="text-xs text-stone-500">Haber de retiro</dt><dd className="font-semibold text-emerald-700 dark:text-emerald-400">{money(liq.total_liquido)}</dd></div>
+                </dl>
+                {!liq.calculada_at && <p className="mt-4 text-sm text-stone-500">Todavía no se calculó. Completá la ficha del causante (cómputo, encasillamiento, zonas) y presioná Calcular.</p>}
+              </Card>
+            ) : (
             <Card title={`${liq.tipo.toUpperCase()} · período ${liq.periodo} · ${liq.estado}`}>
               <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div><dt className="text-xs text-stone-500">Causante</dt><dd>{data.causante.apellido}, {data.causante.nombre}</dd></div>
@@ -155,8 +172,13 @@ export default function LiquidacionPlanilla() {
                 <p className="mt-4 text-sm text-stone-500">Todavía no se calculó. Verificá que el causante tenga su cargo (clase, adicionales, antigüedad){liq.tipo === 'pension' ? ' y beneficiarios' : ''} y presioná Calcular.</p>
               )}
             </Card>
+            )}
 
-            {data.recibos.map((r) => {
+            {proyectada && data.recibos.map((r) => r.proyectada && (
+              <Card key={r.numero}><ProyectadaContent pr={r.proyectada} conceptos={r.conceptos_haber} /></Card>
+            ))}
+
+            {!proyectada && data.recibos.map((r) => {
               const persona = r.beneficiario ?? data.causante;
               return (
                 <Card key={r.numero} title={`Recibo ${r.numero}: ${persona.apellido}, ${persona.nombre}${r.beneficiario ? ` (${r.beneficiario.parentesco} ${Number(r.beneficiario.porcentaje)}%${r.beneficiario.art37 ? ' + art. 37' : ''})` : ''}`}>

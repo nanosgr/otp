@@ -8,7 +8,7 @@ pub const AGG_OPS: &[&str] = &["+", "*", "MAX", "MIN", "AVG", "AND", "OR", "COUN
 
 /// Nombres de variables definidas por el propio motor (no vienen del contexto).
 pub const BUILTIN_VARS: &[&str] = &[
-    "FECHA", "UNIDAD", "UNITARIO", "IMPORTE", "CODIGO", "CAMPO_UNIDAD", "CAMPO_IMPORTE",
+    "FECHA", "UNIDAD", "UNITARIO", "IMPORTE", "CODIGO", "CAMPO_UNIDAD", "CAMPO_IMPORTE", "CAMPO_PRESENTE",
 ];
 
 #[derive(Debug, Default, Clone)]

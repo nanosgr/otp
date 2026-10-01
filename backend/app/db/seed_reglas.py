@@ -5,6 +5,15 @@ la planilla con `scripts/import_reglas_planillas.py` a `seed_data/reglas_planill
 Las fórmulas se escriben acá, una sola por concepto para todas las vigencias: un concepto que no existe en una
 fecha (sin vigencia) vale 0 en las referencias `#codigo`, lo que reproduce los cambios de estructura de las hojas.
 
+Cada concepto del haber tiene unidad (% o cantidad), unitario (base) e importe, como la planilla de liquidación
+proyectada. La unidad sale del encasillamiento del cargo (`CAMPO_UNIDAD`) cuando lo hay y, si no, de los campos del
+cargo / parámetros (planilla de retroactivos). Con encasillamiento, un concepto se liquida solo si está encasillado
+(`CAMPO_PRESENTE`); sin encasillamiento (`ENCASILLADO` falso) se liquidan todos los vigentes, como antes.
+
+Juego penitenciario (`escalafon='penitenciario'`) y vigencias que la planilla de retroactivos no cubre: se cargan desde
+`seed_data/reglas_proyectadas.json` (escalas PARCIALES deducidas de las liquidaciones proyectadas relevadas, ver
+`scripts/import_casos_proyectados.py`).
+
 Uso:  python -m app.db.seed_reglas [--force]
 Sin --force no toca lo que ya existe (respeta ediciones manuales); con --force lo reemplaza.
 """
@@ -22,48 +31,111 @@ from app.models.prevision import (
 )
 
 DATA = Path(__file__).parent / "seed_data" / "reglas_planillas.json"
+DATA_PROYECTADAS = Path(__file__).parent / "seed_data" / "reglas_proyectadas.json"
 DESDE = date(2022, 5, 1)
+DESDE_PEN = date(2022, 4, 1)
 
 BASE = "#10 + #23 + #58 + #24 + #31 + #59 + #83 + #80"
+BASE_PEN = "#10 + #26 + #23 + #27 + #58 + #24 + #31 + #83 + #80"
 HAB = 10  # decimales de importe de los conceptos del haber (la planilla no redondea los pasos intermedios)
 
-# codigo: (columna, orden, formula_importe)
+# Condición: con encasillamiento solo se liquida lo encasillado; sin él, todo lo vigente
+ENCASILLADO = "NOT ENCASILLADO OR CAMPO_PRESENTE"
+
+
+def enc(defecto: str) -> str:
+    """Unidad: el valor del encasillamiento si está encasillado; si no, el dato del cargo o el parámetro."""
+    return f"IF(CAMPO_PRESENTE, CAMPO_UNIDAD, {defecto})"
+
+
+def enc_param(param: str) -> str:
+    """Unidad de un % general: el del encasillamiento si trae valor ("$" = el vigente), si no el parámetro."""
+    return f"IF(CAMPO_PRESENTE AND CAMPO_UNIDAD > 0, CAMPO_UNIDAD, HISTORIAL('{param}'))"
+
+
+# codigo: (orden, formula_unidad, formula_unitario, formula_importe, formula_condicion)
+# El importe se escribe completo (no UNITARIO x UNIDAD) para no redondear la base a 4 decimales.
 HABER: Dict[str, tuple] = {
-    "10": ("REMUNERATIVO", 10, "TABLA('ESCALA_CLASE', COL.CLASE = CLASE, COL.HABER)"),
-    "23": ("REMUNERATIVO", 23, "HISTORIAL('BASE_JEFE') * RESP_JERARQUICA_PORC%"),
-    "58": ("REMUNERATIVO", 58, "HISTORIAL('BASE_JEFE') * RECARGO_SERVICIO_PORC%"),
-    "24": ("REMUNERATIVO", 24, "HISTORIAL('BASE_JEFE') * IF(TITULO = 'grado', HISTORIAL('PORC_TITULO_GRADO'), "
-                               "IF(TITULO = 'posgrado', HISTORIAL('PORC_TITULO_POSGRADO'), 0))%"),
-    "31": ("REMUNERATIVO", 31, "HISTORIAL('BASE_PREGRADO') * IF(TITULO = 'grado' OR TITULO = 'posgrado', 0, "
-                               "TABLA('PORC_TITULO_PREGRADO', COL.NIVEL <= NIVEL_PREGRADO, COL.PORC, 0))%"),
-    "59": ("REMUNERATIVO", 59, "HISTORIAL('BASE_JEFE') * IF(RIESGO_ESPECIAL, HISTORIAL('PORC_RIESGO_ESPECIAL'), 0)%"),
-    "83": ("REMUNERATIVO", 83, "TABLA('ESCALA_CLASE', COL.CLASE = ZONA_CLASE, COL.HABER, 0) * ZONA_PORC%"),
-    "80": ("REMUNERATIVO", 80, "#10 * HISTORIAL('PORC_ANTIGUEDAD')% * ANIOS_ANTIGUEDAD"),
-    "90": ("REMUNERATIVO", 90, f"({BASE} + #66) * HISTORIAL('PORC_ADIC_FZA_SEG')%"),
-    "64": ("REMUNERATIVO", 64, "HISTORIAL('MONTO_64')"),
-    "91": ("REMUNERATIVO", 91, f"({BASE} + #90 + #64) * HISTORIAL('PORC_AUM_0705')%"),
-    "95": ("REMUNERATIVO", 95, f"({BASE} + #90 + #64 + #91) * CUERPO_APOYO_PORC%"),
-    "92": ("REMUNERATIVO", 92, f"({BASE} + #90 + #64 + #91 + #95) * HISTORIAL('PORC_AUM_0907')%"),
-    "93": ("REMUNERATIVO", 93, f"({BASE} + #90 + #64 + #91 + #95 + #92) * HISTORIAL('PORC_AUM_0308')%"),
-    "50": ("REMUNERATIVO", 50, "HISTORIAL('MONTO_50')"),
-    "51": ("REMUNERATIVO", 51, "HISTORIAL('BASE_JEFE') * HISTORIAL('PORC_PERS_SEG_2022')%"),
-    "52": ("REMUNERATIVO", 52, "#10 * HISTORIAL('PORC_FORTALECIMIENTO')%"),
-    "65": ("REMUNERATIVO", 65, "IF(ADICIONAL_SEGURIDAD, HISTORIAL('MONTO_65'), 0)"),
-    "66": ("REMUNERATIVO", 66, "HISTORIAL('MONTO_66')"),
-    "73": ("REMUNERATIVO", 73, "HISTORIAL('MONTO_73')"),
-    "74": ("REMUNERATIVO", 74, "#73"),
-    "75": ("REMUNERATIVO", 75, "HISTORIAL('MONTO_75')"),
+    "10": (10, "CLASE", None, "TABLA('ESCALA_CLASE', COL.CLASE = CLASE, COL.HABER)", None),
+    "23": (23, enc("RESP_JERARQUICA_PORC"), "HISTORIAL('BASE_JEFE')", "HISTORIAL('BASE_JEFE') * UNIDAD%", ENCASILLADO),
+    "58": (58, enc("RECARGO_SERVICIO_PORC"), "HISTORIAL('BASE_JEFE')", "HISTORIAL('BASE_JEFE') * UNIDAD%", ENCASILLADO),
+    "24": (24, enc("IF(TITULO = 'grado', HISTORIAL('PORC_TITULO_GRADO'), "
+                   "IF(TITULO = 'posgrado', HISTORIAL('PORC_TITULO_POSGRADO'), 0))"),
+           "HISTORIAL('BASE_JEFE')", "HISTORIAL('BASE_JEFE') * UNIDAD%", ENCASILLADO),
+    "31": (31, enc("IF(TITULO = 'grado' OR TITULO = 'posgrado', 0, "
+                   "TABLA('PORC_TITULO_PREGRADO', COL.NIVEL <= NIVEL_PREGRADO, COL.PORC, 0))"),
+           "HISTORIAL('BASE_PREGRADO')", "HISTORIAL('BASE_PREGRADO') * UNIDAD%", ENCASILLADO),
+    "59": (59, enc("IF(RIESGO_ESPECIAL, HISTORIAL('PORC_RIESGO_ESPECIAL'), 0)"),
+           "HISTORIAL('BASE_JEFE')", "HISTORIAL('BASE_JEFE') * UNIDAD%", ENCASILLADO),
+    "83": (83, "ZONA_PORC", "TABLA('ESCALA_CLASE', COL.CLASE = ZONA_CLASE, COL.HABER, 0)",
+           "TABLA('ESCALA_CLASE', COL.CLASE = ZONA_CLASE, COL.HABER, 0) * UNIDAD%", None),
+    "80": (80, enc("ANIOS_ANTIGUEDAD"), "#10", "#10 * HISTORIAL('PORC_ANTIGUEDAD')% * UNIDAD", ENCASILLADO),
+    "90": (90, enc_param("PORC_ADIC_FZA_SEG"), f"{BASE} + #66", f"({BASE} + #66) * UNIDAD%", ENCASILLADO),
+    "64": (64, None, None, "HISTORIAL('MONTO_64')", ENCASILLADO),
+    "91": (91, enc_param("PORC_AUM_0705"), f"{BASE} + #90 + #64", f"({BASE} + #90 + #64) * UNIDAD%", ENCASILLADO),
+    "95": (95, enc("CUERPO_APOYO_PORC"), f"{BASE} + #90 + #64 + #91", f"({BASE} + #90 + #64 + #91) * UNIDAD%", ENCASILLADO),
+    "92": (92, enc_param("PORC_AUM_0907"), f"{BASE} + #90 + #64 + #91 + #95",
+           f"({BASE} + #90 + #64 + #91 + #95) * UNIDAD%", ENCASILLADO),
+    "93": (93, enc_param("PORC_AUM_0308"), f"{BASE} + #90 + #64 + #91 + #95 + #92",
+           f"({BASE} + #90 + #64 + #91 + #95 + #92) * UNIDAD%", ENCASILLADO),
+    "50": (50, None, None, "HISTORIAL('MONTO_50')", ENCASILLADO),
+    "51": (51, enc_param("PORC_PERS_SEG_2022"), "HISTORIAL('BASE_JEFE')", "HISTORIAL('BASE_JEFE') * UNIDAD%", ENCASILLADO),
+    "52": (52, enc_param("PORC_FORTALECIMIENTO"), "#10", "#10 * UNIDAD%", ENCASILLADO),
+    "65": (65, None, None, "IF(ADICIONAL_SEGURIDAD OR CAMPO_PRESENTE, HISTORIAL('MONTO_65'), 0)", ENCASILLADO),
+    "66": (66, None, None, "HISTORIAL('MONTO_66')", ENCASILLADO),
+    "73": (73, None, None, "HISTORIAL('MONTO_73')", ENCASILLADO),
+    "74": (74, None, None, "#73", ENCASILLADO),
+    "75": (75, None, None, "HISTORIAL('MONTO_75')", ENCASILLADO),
 }
 
+# Servicio penitenciario (verificado contra 7 liquidaciones proyectadas): el 026/027/031 van sobre la propia clase,
+# el 90 no suma el 066 en su base, el 74 es un monto propio (= 73 en 2022, 73/2 en 2025). Solo se liquida lo encasillado.
+JEFE_PEN = "HISTORIAL('BASE_JEFE_PEN')"
+TITULO_PEN = "HISTORIAL('BASE_TITULO_PEN', FECHA, HISTORIAL('BASE_JEFE_PEN'))"
+ESCALA_PEN = "TABLA('ESCALA_CLASE_PEN', COL.CLASE = {}, COL.HABER{})"
+HABER_PEN: Dict[str, tuple] = {
+    "10": (10, "Clase", "CLASE", None, ESCALA_PEN.format("CLASE", ""), None),
+    "26": (26, "Insalubridad / Suplemento de riesgo", "CAMPO_UNIDAD", "#10", "#10 * UNIDAD%", "CAMPO_PRESENTE"),
+    "23": (23, "Resp. Penitenciaria", "CAMPO_UNIDAD", JEFE_PEN, f"{JEFE_PEN} * UNIDAD%", "CAMPO_PRESENTE"),
+    "27": (27, "Riesgo Especial Penitenciario", "CAMPO_UNIDAD", "#10", "#10 * UNIDAD%", "CAMPO_PRESENTE"),
+    "58": (58, "Recargo de Servicio", "CAMPO_UNIDAD", JEFE_PEN, f"{JEFE_PEN} * UNIDAD%", "CAMPO_PRESENTE"),
+    "24": (24, "Título de Grado / Posgrado o Resp. Profesional", "CAMPO_UNIDAD", TITULO_PEN, f"{TITULO_PEN} * UNIDAD%",
+           "CAMPO_PRESENTE"),
+    "31": (31, "Título Sec. y Pre-Grado", "CAMPO_UNIDAD", "#10", "#10 * UNIDAD%", "CAMPO_PRESENTE"),
+    "83": (83, "Zona", "ZONA_PORC", ESCALA_PEN.format("ZONA_CLASE", ", 0"),
+           ESCALA_PEN.format("ZONA_CLASE", ", 0") + " * UNIDAD%", None),
+    "80": (80, "Antigüedad", enc("ANIOS_ANTIGUEDAD"), "#10", "#10 * HISTORIAL('PORC_ANTIGUEDAD_PEN')% * UNIDAD", None),
+    "90": (90, "Adic Fuerza Seguridad (presentismo)", enc_param("PORC_ADIC_FZA_SEG_PEN"), BASE_PEN,
+           f"({BASE_PEN}) * UNIDAD%", "CAMPO_PRESENTE"),
+    "91": (91, "Aumento 07/05", enc_param("PORC_AUM_0705_PEN"), f"{BASE_PEN} + #90", f"({BASE_PEN} + #90) * UNIDAD%",
+           "CAMPO_PRESENTE"),
+    "92": (92, "Aumento 09/07", enc_param("PORC_AUM_0907_PEN"), f"{BASE_PEN} + #90 + #91",
+           f"({BASE_PEN} + #90 + #91) * UNIDAD%", "CAMPO_PRESENTE"),
+    "93": (93, "Aumento 03/08", enc_param("PORC_AUM_0308_PEN"), f"{BASE_PEN} + #90 + #91 + #92",
+           f"({BASE_PEN} + #90 + #91 + #92) * UNIDAD%", "CAMPO_PRESENTE"),
+    "50": (50, "Adicional Paritaria 2022", None, None, "HISTORIAL('MONTO_50_PEN')", "CAMPO_PRESENTE"),
+    "51": (51, "Adicional Personal de Seguridad 2022", enc_param("PORC_PERS_SEG_2022_PEN"), JEFE_PEN,
+           f"{JEFE_PEN} * UNIDAD%", "CAMPO_PRESENTE"),
+    "52": (52, "A. Fortalecimiento de la Labor Polic", enc_param("PORC_FORTALECIMIENTO_PEN"), "#10", "#10 * UNIDAD%",
+           "CAMPO_PRESENTE"),
+    "100": (100, "Tiempo Mínimo en el Grado", None, None, "CAMPO_IMPORTE", "CAMPO_PRESENTE"),
+    "65": (65, "Adicional Ley 7666", None, None, "HISTORIAL('MONTO_65_PEN')", "CAMPO_PRESENTE"),
+    "66": (66, "Aumento Marzo/2010", None, None, "HISTORIAL('MONTO_66_PEN')", "CAMPO_PRESENTE"),
+    "73": (73, "Adicional Aumento 07/11 / Refrigerio Penitenciario", None, None, "HISTORIAL('MONTO_73_PEN')", "CAMPO_PRESENTE"),
+    "74": (74, "Adicional Aumento 07/11 / Aumento 2004", None, None, "HISTORIAL('MONTO_74_PEN')", "CAMPO_PRESENTE"),
+    "75": (75, "Adicional Aumento 2004", None, None, "HISTORIAL('MONTO_75_PEN')", "CAMPO_PRESENTE"),
+}
+
+# % de retiro: manual, o tabla por la antigüedad final del cómputo de servicios (sin cómputo, los años del cargo)
 PORC_RETIRO = ("IF(PORCENTAJE_RETIRO_MANUAL > 0, PORCENTAJE_RETIRO_MANUAL, "
                "IF(TIPO_PERSONAL = 'superior', "
-               "TABLA('RETIRO_SUPERIOR', COL.ANIOS <= ANIOS_ANTIGUEDAD, COL.PORC, 0), "
-               "TABLA('RETIRO_SUBALTERNO', COL.ANIOS <= ANIOS_ANTIGUEDAD, COL.PORC, 0)))")
+               "TABLA('RETIRO_SUPERIOR', COL.ANIOS <= ANTIGUEDAD_FINAL, COL.PORC, 0), "
+               "TABLA('RETIRO_SUBALTERNO', COL.ANIOS <= ANTIGUEDAD_FINAL, COL.PORC, 0)))")
 
 # codigo: (descripcion, columna, etapa, orden, formula_importe, decimales, tipo_beneficio)
 # HABER_PONDERADO = suma de (total remunerativo de cada cargo x % de su secuencia); lo calcula el liquidador.
 DERIVADOS: Dict[str, tuple] = {
-    "HABER_RETIRO": ("Haber de retiro", "AUXILIAR", "beneficio", 1000, f"HABER_PONDERADO * ({PORC_RETIRO})%", HAB, None),
+    "HABER_RETIRO": ("Haber de retiro", "AUXILIAR", "beneficio", 1000, "HABER_PONDERADO * UNIDAD%", HAB, None),
     "PENSION_TOTAL": ("Pensión (75% del haber de retiro)", "AUXILIAR", "beneficio", 1010,
                       "#HABER_RETIRO * HISTORIAL('PORC_PENSION')%", HAB, "pension"),
     "PENSION_BENEFICIARIO": ("Pensión del beneficiario", "AUXILIAR", "beneficio", 1020,
@@ -126,10 +198,10 @@ def _param(db: Session, campo: str, valor, desde: Optional[date], hasta: Optiona
                               vigencia_desde=desde, vigencia_hasta=hasta, descripcion=descripcion))
 
 
-def _concepto(db: Session, codigo: str, force: bool, **campos) -> Concepto:
-    c = db.exec(select(Concepto).where(Concepto.codigo == codigo)).first()
+def _concepto(db: Session, codigo: str, force: bool, escalafon: str = "policia", **campos) -> Concepto:
+    c = db.exec(select(Concepto).where(Concepto.codigo == codigo, Concepto.escalafon == escalafon)).first()
     if c is None:
-        c = Concepto(codigo=codigo, **campos)
+        c = Concepto(codigo=codigo, escalafon=escalafon, **campos)
         db.add(c)
     elif force:
         for k, v in campos.items():
@@ -183,22 +255,56 @@ def seed_reglas(db: Session, force: bool = False) -> dict:
         _param(db, campo, valor, DESDE, None, "Rótulos/celdas fijas de la planilla", force)
 
     # Conceptos del haber, con las vigencias en que existen en la planilla
-    for codigo, (columna, orden, formula) in HABER.items():
-        c = _concepto(db, codigo, force, descripcion=nombres.get(codigo, codigo), columna=columna, etapa="haber",
-                      formula_importe=formula, decimales_importe=HAB, orden=orden)
+    for codigo, (orden, unidad, unitario, importe, condicion) in HABER.items():
+        c = _concepto(db, codigo, force, descripcion=nombres.get(codigo, codigo), columna="REMUNERATIVO", etapa="haber",
+                      formula_unidad=unidad, formula_unitario=unitario, formula_importe=importe,
+                      formula_condicion=condicion, decimales_importe=HAB, orden=orden)
         _vigencias(db, c, data["presencia"][codigo], None, force)
 
     # Conceptos derivados (retiro, pensión, descuentos de la liquidación)
     for codigo, (desc, columna, etapa, orden, formula, dec, tipo) in DERIVADOS.items():
+        extra = _RETIRO if codigo == "HABER_RETIRO" else {}
         c = _concepto(db, codigo, force, descripcion=desc, columna=columna, etapa=etapa,
-                      formula_importe=formula, decimales_importe=dec, orden=orden)
+                      formula_importe=formula, decimales_importe=dec, orden=orden, **extra)
         _vigencias(db, c, [{"desde": DESDE.isoformat(), "hasta": None}], tipo, force)
 
+    vig_pen = seed_proyectadas(db, force)
     db.commit()
-    return {"vigencias": data["cobertura"]["vigencias"], "desde": data["cobertura"]["desde"]}
+    return {"vigencias": data["cobertura"]["vigencias"], "desde": data["cobertura"]["desde"], "proyectadas": vig_pen}
+
+
+# HABER_RETIRO muestra el % de retiro (unidad) y el haber ponderado (base), como la planilla proyectada
+_RETIRO = {"formula_unidad": PORC_RETIRO, "formula_unitario": "HABER_PONDERADO"}
+
+
+def seed_proyectadas(db: Session, force: bool = False) -> int:
+    """Juego penitenciario y escalas/parámetros PARCIALES deducidos de las liquidaciones proyectadas relevadas."""
+    if not DATA_PROYECTADAS.exists():
+        return 0
+    data = json.loads(DATA_PROYECTADAS.read_text(encoding="utf-8"))
+    desc = f"PROVISORIA – casos relevados ({data['fuente']}): solo las clases/valores que aparecen en las liquidaciones"
+    cols = [{"nombre": "CLASE", "tipo": "int"}, {"nombre": "HABER", "tipo": "decimal"}]
+    for v in data["vigencias"]:
+        codigo = "ESCALA_CLASE_PEN" if v["escalafon"] == "penitenciario" else "ESCALA_CLASE"
+        filas = [[int(k), str(x)] for k, x in v["escala"].items()]
+        _crear_tabla(db, codigo, desc, cols, filas, _d(v["desde"]), _d(v["hasta"]), force)
+        for campo, valor in v["parametros"].items():
+            _param(db, campo, valor, _d(v["desde"]), _d(v["hasta"]), desc, force)
+
+    for codigo, (orden, descripcion, unidad, unitario, importe, condicion) in HABER_PEN.items():
+        c = _concepto(db, codigo, force, escalafon="penitenciario", descripcion=descripcion, columna="REMUNERATIVO",
+                      etapa="haber", formula_unidad=unidad, formula_unitario=unitario, formula_importe=importe,
+                      formula_condicion=condicion, decimales_importe=HAB, orden=orden)
+        _vigencias(db, c, [{"desde": DESDE_PEN.isoformat(), "hasta": None}], None, force)
+    d = DERIVADOS["HABER_RETIRO"]
+    c = _concepto(db, "HABER_RETIRO", force, escalafon="penitenciario", descripcion=d[0], columna=d[1], etapa=d[2],
+                  formula_importe=d[4], decimales_importe=d[5], orden=d[3], **_RETIRO)
+    _vigencias(db, c, [{"desde": DESDE_PEN.isoformat(), "hasta": None}], None, force)
+    return len(data["vigencias"])
 
 
 if __name__ == "__main__":
     with Session(engine) as session:
         info = seed_reglas(session, force="--force" in sys.argv)
-    print(f"Reglas cargadas: {info['vigencias']} vigencias desde {info['desde']}")
+    print(f"Reglas cargadas: {info['vigencias']} vigencias desde {info['desde']} "
+          f"+ {info['proyectadas']} vigencias parciales de liquidaciones proyectadas")

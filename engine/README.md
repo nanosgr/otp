@@ -10,7 +10,7 @@ engine/
 ```
 
 ```bash
-cd engine && cargo test                                  # 34 tests (unitarios + propiedades)
+cd engine && cargo test                                  # tests unitarios + propiedades
 cd engine/otp-formula-py && maturin develop --release    # instala otp_engine en el venv activo
 ```
 Uso desde el backend: `app/services/motor.py` (`calcular`, `compilar`, `validar_reglas`, `validar_formula`).
@@ -24,7 +24,8 @@ Cada concepto tiene 4 fórmulas opcionales. Orden de evaluación: **condición**
 - Condición vacía = verdadera. Si es falsa, el concepto queda oculto: no se evalúan las demás fórmulas, no suma en
   totales, `EXISTE(#c)` es falso y sus referencias valen 0.
 - Sin fórmula de importe: `importe = unidad × unitario` (si están ambas), si no 0.
-- Dentro de las fórmulas del concepto: `UNIDAD`, `UNITARIO` (ya calculados), `CAMPO_UNIDAD`, `CAMPO_IMPORTE` (valores manuales, `contexto.campos`).
+- Dentro de las fórmulas del concepto: `UNIDAD`, `UNITARIO` (ya calculados), `CAMPO_UNIDAD`, `CAMPO_IMPORTE` (valores manuales, `contexto.campos`)
+  y `CAMPO_PRESENTE` (verdadero si el concepto tiene entrada en `contexto.campos`, aunque venga vacía: el liquidador lo usa para el encasillamiento).
 - Redondeo mitad hacia arriba (lejos de cero): unidad a `decimales_unidad` (4), unitario a 4, importe a `decimales_importe` (2).
 - Totales: `bruto = rem + no_rem`, `neto = bruto − descuento`, `costo_laboral = bruto + contribución`. `AUXILIAR` no suma.
 

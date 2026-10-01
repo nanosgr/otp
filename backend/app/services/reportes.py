@@ -59,6 +59,8 @@ def _texto(ws, ref: str, valor: Any, **fmt) -> None:
 
 
 def a_xlsx(resumen: Dict[str, Any]) -> bytes:
+    if resumen["liquidacion"].get("modalidad") == "proyectada":
+        return a_xlsx_proyectada(resumen)
     wb = Workbook()
     wb.remove(wb.active)
     liq = resumen["liquidacion"]
@@ -145,6 +147,8 @@ def a_xlsx(resumen: Dict[str, Any]) -> bytes:
 # ------------------------------------------------------------------ PDF
 
 def a_pdf(resumen: Dict[str, Any]) -> bytes:
+    if resumen["liquidacion"].get("modalidad") == "proyectada":
+        return a_pdf_proyectada(resumen)
     liq = resumen["liquidacion"]
     estilos = getSampleStyleSheet()
     normal, titulo = estilos["Normal"], estilos["Heading2"]
@@ -200,5 +204,164 @@ def a_pdf(resumen: Dict[str, Any]) -> bytes:
                 estilo.append(("BACKGROUND", (0, i), (-1, i), colors.HexColor("#f5f5f4")))
         t.setStyle(TableStyle(estilo))
         story.append(t)
+    doc.build(story)
+    return buf.getvalue()
+
+
+# ------------------------------------------------------------------ Liquidación proyectada (renuncia/baja condicionada)
+
+ETIQUETAS_COMPUTO = {
+    "cuadro_servicio": "Período cuadro de servicio", "hasta_renuncia": "Hasta renuncia condicionada",
+    "servicios_adicionales": "S. adicionales", "beneficio_titulo": "Beneficio por título", "suspensiones": "Suspensiones",
+}
+
+
+def _cod(c: str) -> str:
+    return c.zfill(3) if c.isdigit() else c
+
+
+def _pct(s: Any, dec: int = 2) -> str:
+    if s in (None, ""):
+        return ""
+    d = Decimal(str(s)).quantize(Decimal(1).scaleb(-dec))
+    return f"{d}".replace(".", ",") + "%"
+
+
+def _amd(t) -> List[str]:
+    return [str(x) for x in t] if t else ["", "", ""]
+
+
+def conceptos_proyectada(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Conceptos del haber en el orden y con la descripción del encasillamiento (como la planilla de la oficina)."""
+    enc = {e["codigo"]: (i, e.get("descripcion")) for i, e in enumerate(rec["proyectada"].get("encasillamiento") or [])}
+    haber = [dict(x, descripcion_planilla=enc.get(x["codigo"], (0, None))[1] or x["descripcion"])
+             for x in rec["conceptos_haber"] if x["secuencia"] is not None]
+    return sorted(haber, key=lambda x: (enc.get(x["codigo"], (len(enc), None))[0], int(x["codigo"]) if x["codigo"].isdigit() else 0))
+
+
+def secciones_proyectada(resumen: Dict[str, Any], rec: Dict[str, Any]) -> List[tuple]:
+    """Secciones (título, encabezado, filas de texto) comunes al Excel y al PDF de la proyectada."""
+    c, liq, pr = resumen["causante"], resumen["liquidacion"], rec["proyectada"]
+    imp = pr["imputacion"] or {}
+    f = lambda x: _fecha(x) if x else ""
+    out: List[tuple] = []
+    out.append(("1. DATOS DEL EXPEDIENTE", None, [
+        ["Expediente", c.get("expediente") or ""], ["Nombre", f"{c['apellido']} {c['nombre']}"],
+        ["DNI / CUIL", " / ".join(x for x in (c.get("dni"), c.get("cuil")) if x)], ["Cargo", c.get("grado") or imp.get("grado") or ""],
+        ["Cuerpo", c.get("cuerpo") or ""], ["Escalafón", c.get("escalafon") or ""], ["Ingreso", f(c.get("fecha_ingreso"))],
+        ["Renuncia condicionada", f(c.get("fecha_renuncia_condicionada"))],
+        ["Cuadro de servicio desde", f(c.get("cuadro_servicio_desde"))], ["Cuadro de servicio hasta", f(c.get("cuadro_servicio_hasta"))],
+        ["Base salarial (mes)", liq["periodo"]],
+    ]))
+    comp = pr.get("computo")
+    if comp:
+        fc = comp["filas"]
+        fila = lambda k: [[ETIQUETAS_COMPUTO[k], *_amd(fc.get(k))]] if any(fc.get(k) or ()) else []
+        filas = (fila("cuadro_servicio") + fila("hasta_renuncia") + [["Total servicios", *_amd(comp["total_servicios"])]]
+                 + fila("servicios_adicionales") + fila("beneficio_titulo") + [["Subtotal", *_amd(comp["subtotal"])]]
+                 + fila("suspensiones"))
+        filas += [["Corresponde", *_amd(comp["corresponde"])],
+                  ["Antigüedad final", str(comp["antiguedad_final"]), "", ""]]
+        out.append(("2. CÓMPUTO DE SERVICIOS", ["Concepto", "Años", "Meses", "Días"], filas))
+    out.append(("3. IMPUTACIÓN / CODIFICACIÓN PREVISIONAL", ["Campo", "Valor"], [
+        [k, str(imp.get(v) or "")] for k, v in (
+            ("Carácter", "caracter"), ("Jurisdicción", "jurisdiccion"), ("Unidad organizativa", "unidad_organizativa"),
+            ("Finalidad", "finalidad"), ("Función", "funcion"), ("Clase", "clase"), ("R.S.", "regimen_salarial"),
+            ("A.", "agrupamiento"), ("T.", "tramo"), ("ST.", "subtramo"))
+    ]))
+    enc = pr.get("encasillamiento") or []
+    if enc:
+        out.append(("4. ENCASILLAMIENTO DEFINITIVO", ["Código", "Concepto", "Valor"], [
+            [_cod(e["codigo"]), e.get("descripcion") or "",
+             "-" if not e["aplica"] else ("$" if e["valor"] in (None, "") else
+                                          (str(Decimal(str(e["valor"])).normalize()) if e["codigo"] in ("10", "80") else _pct(e["valor"])))]
+            for e in enc
+        ]))
+    filas = []
+    for x in conceptos_proyectada(rec):
+        unidad = "" if x["unidad"] is None else (str(Decimal(x["unidad"]).normalize()) if x["codigo"] in ("10", "80") else _pct(x["unidad"]))
+        filas.append([_cod(x["codigo"]), x["descripcion_planilla"], "" if x["unitario"] is None else _money(x["unitario"]), unidad,
+                      _money(x["importe"])])
+    filas.append(["", "TOTAL DE HABERES", "", "", _money(pr["total_haberes"] or "0")])
+    filas.append(["", f"PORCENTAJE RETIRO {_pct(pr['porcentaje_retiro'], 0)} — haber de retiro", "", "",
+                  _money(pr["haber_retiro"] or "0")])
+    out.append(("5. LIQUIDACIÓN PROYECTADA", ["Código", "Concepto", "Base ($)", "% / Cant.", "Importe ($)"], filas))
+    z = pr.get("zona")
+    if z:
+        base = next((x["unitario"] for x in rec["conceptos_haber"] if x["codigo"] == "83" and x["secuencia"] is not None), None)
+        filas = [[f(r["desde"]), f(r["hasta"]), r["dependencia"], str(r["dias"]), str(r["anios"]).replace(".", ","),
+                  _pct(Decimal(str(r["zona"])) * 100, 0), str(r["divisor"]), _pct(Decimal(str(r["porc"])) * 100),
+                  str(r["anios_permanencia"]), _pct(Decimal(str(r["porc_final"])) * 100)] for r in z["filas"]]
+        filas.append(["", "", "Total", "", "", "", "", "", "", _pct(Decimal(str(z["total"])) * 100)])
+        filas.append(["", "", "Porcentaje aplicado", "", "", "", "", "", "",
+                      _pct(z["porcentaje_aplicado"], 0) if z["alcanza_minimo"] else "0% (no alcanza el 1%)"])
+        cargo = (pr["imputacion"] or {}).get("zona_cargo_base") or ""
+        filas.append(["", "", "Cargo base", cargo, "", "", "", "Base (clase)", "", _money(base) if base else ""])
+        out.append(("ANEXO — ZONA INHÓSPITA / DESFAVORABLE",
+                    ["Desde", "Hasta", "Dependencia", "Días", "Años", "% Zona", "Divisor", "Porc", "Años perm.", "Porc final"], filas))
+    return out
+
+
+def _titulo_proyectada(resumen: Dict[str, Any]) -> str:
+    c = resumen["causante"]
+    return f"{resumen['liquidacion'].get('asunto') or 'LIQUIDACIÓN PROYECTADA'} — {c['apellido']} {c['nombre']}"
+
+
+def a_xlsx_proyectada(resumen: Dict[str, Any]) -> bytes:
+    wb = Workbook()
+    wb.remove(wb.active)
+    negrita, borde = Font(bold=True), Border(bottom=Side(style="thin"))
+    for rec in resumen["recibos"]:
+        ws = wb.create_sheet(f"Proyectada {rec['numero']}"[:31])
+        _texto(ws, "A1", _titulo_proyectada(resumen), font=Font(bold=True, size=13))
+        fila = 3
+        for titulo, cab, filas in secciones_proyectada(resumen, rec):
+            _texto(ws, f"A{fila}", titulo, font=negrita)
+            fila += 1
+            if cab:
+                for i, h in enumerate(cab, start=1):
+                    _texto(ws, f"{get_column_letter(i)}{fila}", h, font=negrita, border=borde)
+                fila += 1
+            for f in filas:
+                for i, v in enumerate(f, start=1):
+                    _texto(ws, f"{get_column_letter(i)}{fila}", v)
+                fila += 1
+            fila += 1
+        for col, ancho in zip("ABCDEFGHIJ", (26, 44, 22, 14, 18, 10, 9, 12, 10, 14)):
+            ws.column_dimensions[col].width = ancho
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
+def a_pdf_proyectada(resumen: Dict[str, Any]) -> bytes:
+    estilos = getSampleStyleSheet()
+    normal, titulo, sub = estilos["Normal"], estilos["Heading2"], estilos["Heading4"]
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=14 * mm, rightMargin=14 * mm, topMargin=14 * mm, bottomMargin=14 * mm,
+                            title=f"Liquidación proyectada {resumen['liquidacion']['periodo']}", author="online-otp")
+    p = lambda txt, st=normal: Paragraph(escape(str(txt)), st)
+    story: List[Any] = []
+    for rec in resumen["recibos"]:
+        story.append(p(_titulo_proyectada(resumen), titulo))
+        for tit, cab, filas in secciones_proyectada(resumen, rec):
+            story.append(p(tit, sub))
+            datos = ([cab] if cab else []) + filas
+            ancho = doc.width / max(len(r) for r in datos)
+            cols = {5: [16 * mm, 70 * mm, 32 * mm, 22 * mm, 32 * mm], 2: [60 * mm, 110 * mm], 3: [20 * mm, 120 * mm, 30 * mm],
+                    4: [70 * mm, 25 * mm, 25 * mm, 25 * mm],
+                    10: [18 * mm, 18 * mm, 46 * mm, 11 * mm, 11 * mm, 13 * mm, 13 * mm, 18 * mm, 16 * mm, 18 * mm]}
+            t = Table(datos, colWidths=cols.get(len(datos[0]), [ancho] * len(datos[0])), repeatRows=1 if cab else 0, hAlign="LEFT")
+            estilo = [("FONTSIZE", (0, 0), (-1, -1), 7.5), ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+                      ("TOPPADDING", (0, 0), (-1, -1), 1), ("LEADING", (0, 0), (-1, -1), 9)]
+            if cab:
+                estilo += [("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e7e5e4")), ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold")]
+            if tit.startswith("5."):
+                estilo += [("ALIGN", (2, 0), (-1, -1), "RIGHT"), ("FONTNAME", (0, -2), (-1, -1), "Helvetica-Bold"),
+                           ("LINEABOVE", (0, -2), (-1, -2), 0.5, colors.grey)]
+            t.setStyle(TableStyle(estilo))
+            story.append(t)
+        story.append(Spacer(1, 4 * mm))
+        story.append(p(f"Vigencia: reconocimiento paritario hasta {resumen['liquidacion']['periodo']}"))
     doc.build(story)
     return buf.getvalue()

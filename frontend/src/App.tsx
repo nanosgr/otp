@@ -15,6 +15,7 @@ import Audit from '@/pages/Audit';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import ResourcePage from '@/pages/ResourcePage';
+import CausanteFicha from '@/pages/CausanteFicha';
 import LiquidacionPlanilla from '@/pages/LiquidacionPlanilla';
 import { RESOURCES } from '@/lib/resources';
 
@@ -39,6 +40,8 @@ export default function App() {
                 <Route key={r.key} path={`/${r.path}`} element={<PrivateRoute><ResourcePage key={r.key} resourceKey={r.key} /></PrivateRoute>} />
               ))}
               <Route path="/liquidaciones/:id/planilla" element={<PrivateRoute><LiquidacionPlanilla /></PrivateRoute>} />
+              <Route path="/liquidaciones/:id/proyectada" element={<PrivateRoute><LiquidacionPlanilla /></PrivateRoute>} />
+              <Route path="/causantes/:id/ficha" element={<PrivateRoute><CausanteFicha /></PrivateRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             <ToastContainer />

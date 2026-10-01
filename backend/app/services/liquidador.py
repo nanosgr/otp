@@ -9,6 +9,10 @@ Por cada recibo (retiro: uno; pensión: uno por beneficiario):
   3. importe del tramo = haber x meses comerciales; tras cada semestre completo se suma el SAC;
   4. sobre el subtotal se calculan los conceptos de etapa "liquidacion" (descuentos, anticipo) y el líquido.
 Con un solo cargo (100%) el haber ponderado es el haber del cargo.
+
+Modalidad "proyectada" (renuncia/baja condicionada): un único cálculo al 1° del mes base (`periodo`), etapas haber y
+beneficio, sin retroactivo, SAC ni descuentos. En ambas modalidades el encasillamiento del cargo llega al motor como
+`campos`, la antigüedad final sale del cómputo de servicios y el % de zona del anexo de zona (si hay destinos).
 """
 import calendar
 from datetime import date, datetime, timezone
@@ -20,7 +24,9 @@ from sqlmodel import Session, select
 
 from app.models import prevision as m
 from app.services import motor, retroactivo as retro
-from app.services.reglas import ReglasDB, SinReglas, variables_de_cargo
+from app.services.computo import computo as calcular_computo
+from app.services.reglas import ReglasDB, SinReglas, campos_de_encasillamiento, variables_de_cargo
+from app.services.zona import calcular_zona
 
 Q4 = Decimal("0.0001")
 Q2 = Decimal("0.01")
@@ -78,10 +84,43 @@ def _json_safe(o: Any) -> Any:
     return o
 
 
-def _motor(reglas: ReglasDB, tipo: str, etapa: str, fecha: date, variables: Dict[str, Any], donde: str = "") -> Dict[str, Any]:
+class DatosCausante:
+    """Lo que el liquidador lee del causante además de sus cargos: encasillamiento, cómputo y anexo de zona."""
+
+    def __init__(self, db: Session, causante: m.Causante, cargos: List[m.CargoSecuencia], hasta_zona: Optional[date] = None):
+        self.causante = causante
+        ids = [c.id for c in cargos]
+        items = db.exec(select(m.EncasillamientoItem).where(m.EncasillamientoItem.cargo_id.in_(ids))
+                        .order_by(m.EncasillamientoItem.orden, m.EncasillamientoItem.id)).all() if ids else []
+        self.encasillamiento: Dict[int, List[m.EncasillamientoItem]] = {i: [] for i in ids}
+        for it in items:
+            self.encasillamiento[it.cargo_id].append(it)
+        self.campos = {i: campos_de_encasillamiento(v) for i, v in self.encasillamiento.items()}
+        filas = db.exec(select(m.ComputoServicio).where(m.ComputoServicio.causante_id == causante.id)
+                        .order_by(m.ComputoServicio.orden, m.ComputoServicio.id)).all()
+        self.computo = calcular_computo(filas)
+        destinos = db.exec(select(m.ZonaDestino).where(m.ZonaDestino.causante_id == causante.id)).all()
+        self.zona = calcular_zona(destinos, causante.tipo_personal, hasta_zona or causante.fecha_renuncia_condicionada)
+
+    @property
+    def antiguedad_final(self) -> Optional[int]:
+        return self.computo["antiguedad_final"] if self.computo else None
+
+    @property
+    def zona_porc(self) -> Optional[Decimal]:
+        return self.zona["porcentaje_aplicado"] if self.zona else None
+
+    def variables(self, cargo: m.CargoSecuencia, beneficiario: Optional[m.Beneficiario]) -> Dict[str, Any]:
+        v = variables_de_cargo(self.causante, cargo, beneficiario, self.antiguedad_final, self.zona_porc)
+        v["ENCASILLADO"] = bool(self.encasillamiento.get(cargo.id))
+        return v
+
+
+def _motor(reglas: ReglasDB, tipo: str, etapa: str, fecha: date, variables: Dict[str, Any], donde: str = "",
+           campos: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Ejecuta el motor para una etapa y una fecha; traduce los errores a HTTP 422."""
     try:
-        res = motor.calcular(reglas.reglas_a(fecha, tipo, etapa), reglas.contexto_a(fecha, variables))
+        res = motor.calcular(reglas.reglas_a(fecha, tipo, etapa), reglas.contexto_a(fecha, variables, campos=campos))
     except SinReglas as exc:
         raise _err(f"{exc}. Las reglas cargadas cubren desde el {_primera_vigencia(reglas)}.")
     except motor.FormulaError as exc:
@@ -92,36 +131,65 @@ def _motor(reglas: ReglasDB, tipo: str, etapa: str, fecha: date, variables: Dict
     return res
 
 
+def _haber_a(reglas: ReglasDB, tipo: str, fecha: date, datos: DatosCausante, cargos: List[m.CargoSecuencia],
+             beneficiario: Optional[m.Beneficiario]) -> Dict[str, Any]:
+    """Etapas haber (por cargo) y beneficio (sobre el haber ponderado) a una fecha."""
+    principal = cargos[0]   # el % de retiro (manual o por tabla) y sus años salen del cargo principal (secuencia menor)
+    varios = len(cargos) > 1
+    por_cargo: List[Tuple[m.CargoSecuencia, Dict[str, Any], Decimal]] = []
+    ponderado = Decimal(0)
+    for cargo in cargos:
+        res_c = _motor(reglas, tipo, "haber", fecha, datos.variables(cargo, beneficiario),
+                       f" (secuencia {cargo.secuencia})" if varios else "", datos.campos.get(cargo.id))
+        total = Decimal(res_c["totales"]["remunerativo"])
+        ponderado += total * Decimal(str(cargo.porcentaje_secuencia)) / Decimal(100)
+        por_cargo.append((cargo, res_c, total))
+    vars_b = dict(datos.variables(principal, beneficiario), HABER_PONDERADO=ponderado)
+    res_b = _motor(reglas, tipo, "beneficio", fecha, vars_b, "", datos.campos.get(principal.id))
+    return {"por_cargo": por_cargo, "beneficio": res_b, "ponderado": ponderado, "haber": haber_mensual(res_b, tipo, fecha)}
+
+
+def _detalle(ultimo: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "detalle_haber": [(c.secuencia, res) for c, res, _ in ultimo["por_cargo"]],
+        "totales_cargos": [{"secuencia": c.secuencia, "porcentaje": Decimal(str(c.porcentaje_secuencia)), "total": tot}
+                           for c, _, tot in ultimo["por_cargo"]],
+        "haber_ponderado": ultimo["ponderado"],
+        "detalle_beneficio": ultimo["beneficio"],
+    }
+
+
+def calcular_proyectada(reglas: ReglasDB, liq: m.Liquidacion, datos: DatosCausante, cargos: List[m.CargoSecuencia],
+                        beneficiario: Optional[m.Beneficiario]) -> Dict[str, Any]:
+    """Liquidación proyectada: haber del mes base (1° del periodo) x % de retiro; sin SAC ni descuentos."""
+    fecha = date(int(liq.periodo[:4]), int(liq.periodo[5:7]), 1)
+    ultimo = _haber_a(reglas, liq.tipo, fecha, datos, cargos, beneficiario)
+    h = ultimo["haber"]
+    return {
+        "tramos": [], "credito": h, "descuentos": Decimal(0), "liquido": h, "haber_actual": h,
+        "detalle_liquidacion": None, "fecha": fecha, **_detalle(ultimo),
+    }
+
+
 def calcular_recibo(
-    reglas: ReglasDB, liq: m.Liquidacion, causante: m.Causante, cargos: List[m.CargoSecuencia],
+    reglas: ReglasDB, liq: m.Liquidacion, datos: DatosCausante, cargos: List[m.CargoSecuencia],
     beneficiario: Optional[m.Beneficiario], desde: date, hasta: date, anticipo: Decimal,
 ) -> Dict[str, Any]:
     """Calcula tramos, SAC y liquidación final de un recibo. Devuelve estructuras listas para persistir."""
     tipo = liq.tipo
-    principal = cargos[0]   # el % de retiro (manual o por tabla) y sus años salen del cargo principal (secuencia menor)
-    varios = len(cargos) > 1
+    principal = cargos[0]
 
     tramos_def = retro.dividir_en_tramos(desde, hasta, reglas.cortes(desde, hasta))
     filas: List[Dict[str, Any]] = []
     haber_de_tramo: List[Tuple[date, date, Decimal]] = []
     ultimo: Dict[str, Any] = {}
     for a, b in tramos_def:
-        por_cargo: List[Tuple[m.CargoSecuencia, Dict[str, Any], Decimal]] = []
-        ponderado = Decimal(0)
-        for cargo in cargos:
-            res_c = _motor(reglas, tipo, "haber", a, variables_de_cargo(causante, cargo, beneficiario),
-                           f" (secuencia {cargo.secuencia})" if varios else "")
-            total = Decimal(res_c["totales"]["remunerativo"])
-            ponderado += total * Decimal(str(cargo.porcentaje_secuencia)) / Decimal(100)
-            por_cargo.append((cargo, res_c, total))
-        vars_b = dict(variables_de_cargo(causante, principal, beneficiario), HABER_PONDERADO=ponderado)
-        res_b = _motor(reglas, tipo, "beneficio", a, vars_b)
-        h = haber_mensual(res_b, tipo, a)
+        ultimo = _haber_a(reglas, tipo, a, datos, cargos, beneficiario)
+        h = ultimo["haber"]
         n = retro.meses(a, b)
         haber_de_tramo.append((a, b, h))
         filas.append({"desde": a, "hasta": b, "haber_mensual": h, "meses": n, "importe": h * n, "sac": Decimal(0),
                       "descripcion": None})
-        ultimo = {"por_cargo": por_cargo, "beneficio": res_b, "ponderado": ponderado}
 
     for inicio, cierre in retro.semestres_completos(desde, hasta):
         h = next(h for a, b, h in haber_de_tramo if a <= cierre <= b)
@@ -133,21 +201,17 @@ def calcular_recibo(
     credito = sum((f["importe"] for f in filas), Decimal(0))
 
     # Etapa "liquidación": descuentos y anticipo sobre el subtotal, con las reglas vigentes al cierre del rango
-    vars_liq = dict(variables_de_cargo(causante, principal, beneficiario), SUBTOTAL_CREDITO=credito, ANTICIPO_IMPORTE=anticipo)
-    fin = _motor(reglas, tipo, "liquidacion", hasta, vars_liq, " (liquidación final)")
+    vars_liq = dict(datos.variables(principal, beneficiario), SUBTOTAL_CREDITO=credito, ANTICIPO_IMPORTE=anticipo)
+    fin = _motor(reglas, tipo, "liquidacion", hasta, vars_liq, " (liquidación final)", datos.campos.get(principal.id))
     t = fin["totales"]
     return {
         "tramos": filas,
         "credito": credito,
         "descuentos": Decimal(t["descuento"]),
         "liquido": Decimal(t["neto"]),
-        "detalle_haber": [(c.secuencia, res) for c, res, _ in ultimo["por_cargo"]],
-        "totales_cargos": [{"secuencia": c.secuencia, "porcentaje": Decimal(str(c.porcentaje_secuencia)), "total": tot}
-                           for c, _, tot in ultimo["por_cargo"]],
-        "haber_ponderado": ultimo["ponderado"],
-        "detalle_beneficio": ultimo["beneficio"],
         "detalle_liquidacion": fin,
         "haber_actual": haber_de_tramo[-1][2],
+        **_detalle(ultimo),
     }
 
 
@@ -191,7 +255,9 @@ def calcular_liquidacion(db: Session, liquidacion_id: int, user_id: Optional[int
             raise _err("Los beneficiarios no tienen porcentaje asignado")
         destinatarios = list(benef)
 
-    reglas = ReglasDB(db)
+    reglas = ReglasDB(db, causante.escalafon or "policia")
+    proyectada = liq.modalidad == "proyectada"
+    datos = DatosCausante(db, causante, cargos, hasta)
 
     # recálculo: se reemplaza lo anterior
     for t in db.exec(select(m.TramoRetroactivo).where(m.TramoRetroactivo.liquidacion_id == liq.id)).all():
@@ -218,15 +284,22 @@ def calcular_liquidacion(db: Session, liquidacion_id: int, user_id: Optional[int
             anticipo = anticipo_total * Decimal(str(b.porcentaje)) / suma_pct if len(destinatarios) > 1 else anticipo_total
         else:
             anticipo = anticipo_total
-        r = calcular_recibo(reglas, liq, causante, cargos, b, d_b, h_b, anticipo)
+        if proyectada:
+            r = calcular_proyectada(reglas, liq, datos, cargos, b)
+        else:
+            r = calcular_recibo(reglas, liq, datos, cargos, b, d_b, h_b, anticipo)
         recibo = m.Recibo(
             liquidacion_id=liq.id, beneficiario_id=b.id if b else None, numero=n,
             total_remunerativo=q(r["credito"], Q2), total_no_remunerativo=Decimal(0),
             total_descuento=q(r["descuentos"], Q2), total_contribucion=Decimal(0),
             sueldo_bruto=q(r["credito"], Q2), sueldo_neto=q(r["liquido"], Q2),
             snapshot=_json_safe({
-                "causante": {"id": causante.id, "dni": causante.dni, "apellido": causante.apellido, "nombre": causante.nombre,
-                             "expediente": causante.expediente, "tipo_personal": causante.tipo_personal},
+                "modalidad": liq.modalidad,
+                "causante": {"id": causante.id, **{k: getattr(causante, k) for k in m.CausanteBase.model_fields}},
+                "computo": datos.computo,
+                "zona": datos.zona,
+                "encasillamiento": {str(c.secuencia): [{k: getattr(i, k) for k in ("codigo", "descripcion", "valor", "aplica")}
+                                                       for i in datos.encasillamiento.get(c.id, [])] for c in cargos},
                 "beneficiario": None if b is None else {"id": b.id, "apellido": b.apellido, "nombre": b.nombre, "dni": b.dni,
                                                         "parentesco": b.parentesco, "porcentaje": b.porcentaje, "art37": b.art37},
                 "cargos": [{k: getattr(c, k) for k in m.CargoSecuenciaBase.model_fields if k != "causante_id"} for c in cargos],
@@ -244,7 +317,9 @@ def calcular_liquidacion(db: Session, liquidacion_id: int, user_id: Optional[int
                 liquidacion_id=liq.id, beneficiario_id=b.id if b else None,
                 fecha_desde=f["desde"], fecha_hasta=f["hasta"], haber_mensual=q(f["haber_mensual"]), meses=q(f["meses"]),
                 importe=q(f["importe"]), sac=q(f["sac"]), descripcion=f["descripcion"]))
-        grupos = [(sec, res) for sec, res in r["detalle_haber"]] + [(None, r["detalle_beneficio"]), (None, r["detalle_liquidacion"])]
+        grupos = [(sec, res) for sec, res in r["detalle_haber"]] + [(None, r["detalle_beneficio"])]
+        if r["detalle_liquidacion"] is not None:
+            grupos.append((None, r["detalle_liquidacion"]))
         for sec, res in grupos:
             for c in res["conceptos"]:
                 if not c["condicion"]:
@@ -252,7 +327,8 @@ def calcular_liquidacion(db: Session, liquidacion_id: int, user_id: Optional[int
                 db.add(m.ReciboConcepto(
                     recibo_id=recibo.id, concepto_id=ids_concepto.get(c["codigo"]), secuencia=sec, codigo=c["codigo"],
                     descripcion=c["descripcion"], columna=c["columna"],
-                    unidad=None if c["unidad"] is None else Decimal(c["unidad"]), importe=q(Decimal(c["importe"])),
+                    unidad=None if c["unidad"] is None else Decimal(c["unidad"]),
+                    unitario=None if c.get("unitario") is None else q(Decimal(c["unitario"])), importe=q(Decimal(c["importe"])),
                     condicion=True, warning=False, error=False, message=None))
         tot_credito += r["credito"]
         tot_deb += r["descuentos"]

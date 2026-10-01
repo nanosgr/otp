@@ -502,3 +502,22 @@ fn compilado_se_reutiliza_con_distintos_contextos() {
         assert_eq!(a, b);
     }
 }
+
+#[test]
+fn campo_presente_y_valores_manuales() {
+    let r = run(
+        json!({"conceptos": [
+            {"codigo": "26", "formula_unidad": "IF(CAMPO_PRESENTE, CAMPO_UNIDAD, 5)", "formula_unitario": "1000",
+             "formula_importe": "UNITARIO * UNIDAD%"},
+            {"codigo": "27", "formula_unidad": "IF(CAMPO_PRESENTE, CAMPO_UNIDAD, 5)", "formula_unitario": "1000",
+             "formula_importe": "UNITARIO * UNIDAD%"},
+            {"codigo": "65", "formula_importe": "100", "formula_condicion": "CAMPO_PRESENTE"},
+            {"codigo": "66", "formula_importe": "100", "formula_condicion": "CAMPO_PRESENTE"},
+        ]}),
+        json!({"fecha": "2025-03-01", "variables": {}, "campos": {"26": {"unidad": "30"}, "65": {}}}),
+    );
+    assert_eq!(concepto(&r, "26")["importe"], "300.00");
+    assert_eq!(concepto(&r, "27")["importe"], "50.00");
+    assert_eq!(concepto(&r, "65")["condicion"], true);
+    assert_eq!(concepto(&r, "66")["condicion"], false);
+}

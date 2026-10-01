@@ -1,0 +1,96 @@
+{
+ "fuente": "liquidaciones_complejas_OTP_retiros.xlsx",
+ "provisorio": true,
+ "vigencias": [
+  {
+   "escalafon": "penitenciario",
+   "desde": "2022-04-01",
+   "hasta": "2022-04-30",
+   "escala": {
+    "1": 17036.79,
+    "2": 18068.05
+   },
+   "parametros": {
+    "BASE_JEFE_PEN": 51561.44,
+    "BASE_TITULO_PEN": 44364.37,
+    "MONTO_50_PEN": 7200,
+    "MONTO_66_PEN": 1157.66,
+    "MONTO_73_PEN": 1736.47,
+    "MONTO_74_PEN": 1736.47,
+    "MONTO_75_PEN": 1157.63,
+    "PORC_ADIC_FZA_SEG_PEN": 10,
+    "PORC_AUM_0705_PEN": 10,
+    "PORC_AUM_0907_PEN": 10,
+    "PORC_AUM_0308_PEN": 19,
+    "PORC_ANTIGUEDAD_PEN": 2
+   }
+  },
+  {
+   "escalafon": "penitenciario",
+   "desde": "2022-07-01",
+   "hasta": "2022-07-31",
+   "escala": {
+    "3": 20025.51,
+    "9": 27248.58,
+    "11": 37805.36
+   },
+   "parametros": {
+    "BASE_JEFE_PEN": 55561.9,
+    "MONTO_50_PEN": 7200,
+    "MONTO_65_PEN": 2494.89,
+    "MONTO_66_PEN": 1247.48,
+    "MONTO_73_PEN": 1871.19,
+    "MONTO_74_PEN": 1871.19,
+    "MONTO_75_PEN": 1247.44,
+    "PORC_ADIC_FZA_SEG_PEN": 10,
+    "PORC_AUM_0705_PEN": 10,
+    "PORC_AUM_0907_PEN": 10,
+    "PORC_AUM_0308_PEN": 19,
+    "PORC_ANTIGUEDAD_PEN": 2,
+    "PORC_PERS_SEG_2022_PEN": 10
+   }
+  },
+  {
+   "escalafon": "penitenciario",
+   "desde": "2025-09-01",
+   "hasta": "2025-09-30",
+   "escala": {
+    "2": 160415.19,
+    "10": 275801.85,
+    "12": 354264.78,
+    "13": 395803.98,
+    "14": 423496.78
+   },
+   "parametros": {
+    "BASE_JEFE_PEN": 461546.65,
+    "MONTO_65_PEN": 18777.53,
+    "MONTO_73_PEN": 14083.19,
+    "MONTO_74_PEN": 7041.57,
+    "PORC_ADIC_FZA_SEG_PEN": 37,
+    "PORC_AUM_0705_PEN": 10,
+    "PORC_AUM_0907_PEN": 10,
+    "PORC_AUM_0308_PEN": 19,
+    "PORC_PERS_SEG_2022_PEN": 21,
+    "PORC_FORTALECIMIENTO_PEN": 98,
+    "PORC_ANTIGUEDAD_PEN": 2,
+    "BASE_TITULO_PEN": 461546.65
+   }
+  },
+  {
+   "escalafon": "policia",
+   "desde": "2026-05-01",
+   "hasta": "2026-05-31",
+   "escala": {
+    "14": 258038.15,
+    "15": 316303.13,
+    "23": 194476.35
+   },
+   "parametros": {
+    "BASE_JEFE": 529681.64,
+    "MONTO_65": 21234.4,
+    "MONTO_73": 15925.8
+   }
+  }
+ ],
+ "discrepancias": []
+}

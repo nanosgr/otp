@@ -40,9 +40,12 @@ CAMPOS_CONCEPTO = (
 )
 
 
-def reglas_desde_db(db: Session) -> dict:
-    """Arma las reglas del motor con los conceptos activos, las fórmulas auxiliares y los grupos."""
-    conceptos = db.exec(select(m.Concepto).where(m.Concepto.is_active == True)).all()  # noqa: E712
+def reglas_desde_db(db: Session, escalafon: Optional[str] = None) -> dict:
+    """Arma las reglas del motor con los conceptos activos (de un escalafón, si se indica), las auxiliares y los grupos."""
+    stmt = select(m.Concepto).where(m.Concepto.is_active == True)  # noqa: E712
+    if escalafon:
+        stmt = stmt.where(m.Concepto.escalafon == escalafon)
+    conceptos = db.exec(stmt).all()
     por_id = {c.id: c.codigo for c in conceptos}
     grupos: dict = {}
     for g in db.exec(select(m.GrupoConcepto).where(m.GrupoConcepto.is_active == True)).all():  # noqa: E712
@@ -65,11 +68,13 @@ def _validar_concepto(db: Session, datos: dict, obj_id: Optional[int]) -> None:
     """Rechaza (422) un concepto con fórmulas inválidas o que cierre un ciclo de dependencias."""
     if not datos.get("is_active", True):
         return
-    reglas = reglas_desde_db(db)
+    # cada escalafón es un juego de reglas independiente: los ciclos y referencias se validan dentro del suyo
+    escalafon = datos.get("escalafon") or "policia"
+    reglas = reglas_desde_db(db, escalafon)
     reglas["conceptos"] = [c for c in reglas["conceptos"] if c["codigo"].upper() != datos["codigo"].upper()]
     if obj_id is not None:
         previo = db.get(m.Concepto, obj_id)
-        if previo is not None:
+        if previo is not None and previo.escalafon == escalafon:
             reglas["conceptos"] = [c for c in reglas["conceptos"] if c["codigo"] != previo.codigo]
     reglas["conceptos"].append({k: datos.get(k) for k in CAMPOS_CONCEPTO})
     try:
@@ -99,19 +104,21 @@ READ_EXTRA = {
 }
 
 RESOURCES: List[tuple] = [
-    ("causantes", "causantes", m.Causante, m.CausanteBase, ("apellido", "nombre", "dni", "expediente"), ("is_active",), None, None),
+    ("causantes", "causantes", m.Causante, m.CausanteBase, ("apellido", "nombre", "dni", "expediente"), ("is_active", "escalafon"), None, None),
     ("beneficiarios", "beneficiarios", m.Beneficiario, m.BeneficiarioBase, ("apellido", "nombre", "dni"), ("causante_id", "parentesco"), None, None),
     ("cargos", "cargos", m.CargoSecuencia, m.CargoSecuenciaBase, (), ("causante_id",), None, None),
+    ("encasillamiento", "cargos", m.EncasillamientoItem, m.EncasillamientoItemBase, ("codigo", "descripcion"), ("cargo_id",), None, None),
+    ("computo-servicios", "servicios", m.ComputoServicio, m.ComputoServicioBase, ("observacion",), ("causante_id", "concepto"), None, None),
     ("servicios", "servicios", m.ServicioPeriodo, m.ServicioPeriodoBase, ("descripcion",), ("causante_id", "tipo"), None, None),
     ("zonas", "zonas", m.ZonaDestino, m.ZonaDestinoBase, ("dependencia",), ("causante_id",), None, None),
-    ("conceptos", "conceptos", m.Concepto, m.ConceptoBase, ("codigo", "descripcion"), ("columna", "is_active"), None, _validar_concepto),
+    ("conceptos", "conceptos", m.Concepto, m.ConceptoBase, ("codigo", "descripcion"), ("columna", "escalafon", "etapa", "is_active"), None, _validar_concepto),
     ("grupos-concepto", "grupos_concepto", m.GrupoConcepto, m.GrupoConceptoBase, ("nombre",), (), None, None),
     ("formulas-auxiliares", "formulas_auxiliares", m.FormulaAuxiliar, m.FormulaAuxiliarBase, ("codigo", "descripcion"), (), None, None),
     ("concepto-vigencias", "concepto_vigencias", m.ConceptoVigencia, m.ConceptoVigenciaBase, ("descripcion",), ("concepto_id", "alcance", "tipo_beneficio"), None, None),
     ("tablas", "tablas", m.Tabla, m.TablaBase, ("codigo", "descripcion"), ("is_active",), None, None),
     ("filas", "tablas", m.Fila, m.FilaBase, (), ("tabla_id",), None, None),
     ("parametros", "parametros", m.ParametroHistorial, m.ParametroHistorialBase, ("campo", "descripcion"), ("campo",), None, None),
-    ("liquidaciones", "liquidaciones", m.Liquidacion, m.LiquidacionBase, ("periodo", "observaciones"), ("causante_id", "tipo", "estado", "periodo"), _liquidacion_abierta, None),
+    ("liquidaciones", "liquidaciones", m.Liquidacion, m.LiquidacionBase, ("periodo", "observaciones"), ("causante_id", "tipo", "modalidad", "estado", "periodo"), _liquidacion_abierta, None),
     ("recibos", "liquidaciones", m.Recibo, m.ReciboBase, (), ("liquidacion_id", "beneficiario_id"), _padre_liquidacion_abierta, None),
     ("recibo-conceptos", "liquidaciones", m.ReciboConcepto, m.ReciboConceptoBase, ("codigo", "descripcion"), ("recibo_id",), _recibo_concepto_abierto, None),
     ("tramos-retroactivos", "liquidaciones", m.TramoRetroactivo, m.TramoRetroactivoBase, (), ("liquidacion_id",), _padre_liquidacion_abierta, None),
@@ -119,10 +126,12 @@ RESOURCES: List[tuple] = [
 
 RECURSOS_DOMINIO = sorted({r[1] for r in RESOURCES})
 
+from app.api.ficha import router as ficha_router  # noqa: E402
 from app.api.liquidaciones import router as liquidaciones_acciones  # noqa: E402
 
 prevision_router = APIRouter()
 prevision_router.include_router(liquidaciones_acciones, prefix="/liquidaciones", tags=["liquidaciones"])
+prevision_router.include_router(ficha_router, prefix="/causantes", tags=["causantes"])
 for prefix, resource, table, base, search, filters, guard, validate in RESOURCES:
     prevision_router.include_router(
         make_crud_router(resource=resource, table=table, base=base, search_fields=search,

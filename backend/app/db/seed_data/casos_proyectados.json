@@ -1,0 +1,2679 @@
+{
+ "fuente": "liquidaciones_complejas_OTP_retiros.xlsx",
+ "casos": [
+  {
+   "hoja": "BERON FLORES",
+   "escalafon": "policia",
+   "periodo": "2022-07",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2021-01907738- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "18748217",
+    "cuil": null,
+    "apellido": "BERON FLORES",
+    "nombre": "FRANCISCO MANUEL",
+    "escalafon": "policia",
+    "tipo_personal": "superior",
+    "grado": "SUB-COMISARIO",
+    "cuerpo": "Cuerpo de Comando",
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "1995-03-01",
+    "fecha_renuncia_condicionada": "2022-06-01",
+    "cuadro_servicio_desde": "1995-03-01",
+    "cuadro_servicio_hasta": "2021-10-30"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 26,
+     "meses": 8,
+     "dias": 0
+    },
+    {
+     "concepto": "hasta_renuncia",
+     "anios": 0,
+     "meses": 7,
+     "dias": 0
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 1,
+     "meses": 6,
+     "dias": 24
+    },
+    {
+     "concepto": "beneficio_titulo",
+     "anios": 1,
+     "meses": 0,
+     "dias": 0
+    },
+    {
+     "concepto": "suspensiones",
+     "anios": 0,
+     "meses": 0,
+     "dias": 27
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 16,
+    "grado": "SUB-COMISARIO",
+    "anios_antiguedad": 27,
+    "zona_porcentaje": 1,
+    "zona_clase": 14,
+    "zona_cargo_base": "OFICIAL INSPECTOR",
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "06",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "36",
+    "agrupamiento": "1",
+    "tramo": "02",
+    "subtramo": "07"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 16,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 0,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "23",
+     "descripcion": "Responsabilidad Jerárquica Pol",
+     "valor": 66,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "59",
+     "descripcion": "Riesgo Especial",
+     "valor": 0,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado o Posgrado",
+     "valor": 0,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Técnico Universitario",
+     "valor": 5,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 1,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 27,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 10,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "64",
+     "descripcion": "Aumento 01/01/2005",
+     "valor": null,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "50",
+     "descripcion": "Adicional Paritario 2022",
+     "valor": null,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "51",
+     "descripcion": "Adicional Personal de Seguridad 2022",
+     "valor": null,
+     "aplica": true,
+     "orden": 14
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": false,
+     "orden": 15
+    },
+    {
+     "codigo": "66",
+     "descripcion": "Adic. Rem. 01/03/2010",
+     "valor": null,
+     "aplica": true,
+     "orden": 16
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Comp. Policial",
+     "valor": null,
+     "aplica": true,
+     "orden": 17
+    },
+    {
+     "codigo": "74",
+     "descripcion": "Aumento 2004",
+     "valor": null,
+     "aplica": true,
+     "orden": 18
+    },
+    {
+     "codigo": "75",
+     "descripcion": "Parit. Gral. 09",
+     "valor": null,
+     "aplica": true,
+     "orden": 19
+    }
+   ],
+   "zonas": [
+    {
+     "dependencia": "25 DE MAYO",
+     "porcentaje_zona": 10,
+     "fecha_desde": "2009-12-17",
+     "fecha_hasta": "2014-01-03"
+    }
+   ],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      27,
+      3,
+      0
+     ],
+     "subtotal": [
+      29,
+      9,
+      24
+     ],
+     "corresponde": [
+      29,
+      8,
+      27
+     ],
+     "antiguedad_final": 30
+    },
+    "porcentaje_retiro": 100,
+    "conceptos": {
+     "10": 37805.35,
+     "58": 0,
+     "23": 36670.85,
+     "59": 0,
+     "24": 0,
+     "31": 2140.3,
+     "83": 272.49,
+     "80": 20414.89,
+     "90": 9867.61,
+     "64": 848.28,
+     "91": 10801.98,
+     "92": 11882.17,
+     "93": 24833.74,
+     "50": 7200,
+     "51": 5556.19,
+     "65": 0,
+     "66": 1372.23,
+     "73": 1871.19,
+     "74": 1871.19,
+     "75": 1247.44
+    },
+    "bases": {
+     "58": 55561.89,
+     "23": 55561.89,
+     "31": 42805.93,
+     "83": 27248.53,
+     "51": 55561.89
+    },
+    "total_haberes": 174655.89,
+    "haber_retiro": 174655.89,
+    "zona": {
+     "filas": [
+      0.0133
+     ],
+     "total": 0.0133,
+     "aplicado": 1,
+     "base": 27248.53
+    }
+   },
+   "notas": []
+  },
+  {
+   "hoja": "CORRENTI CABELLO",
+   "escalafon": "penitenciario",
+   "periodo": "2025-09",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2025-06713279- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "25048979",
+    "cuil": null,
+    "apellido": "CORRENTI CABELLO",
+    "nombre": "HECTOR ANTONIO",
+    "escalafon": "penitenciario",
+    "tipo_personal": "subalterno",
+    "grado": "SUB-OFICIAL SUB-AYUDANTE SCS",
+    "cuerpo": null,
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "2001-12-28",
+    "fecha_renuncia_condicionada": "2025-10-01",
+    "cuadro_servicio_desde": "2001-12-28",
+    "cuadro_servicio_hasta": "2025-08-30"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 23,
+     "meses": 8,
+     "dias": 3
+    },
+    {
+     "concepto": "hasta_renuncia",
+     "anios": 0,
+     "meses": 1,
+     "dias": 0
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 1,
+     "meses": 3,
+     "dias": 0
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 2,
+    "grado": "SUB-OFICIAL SUB-AYUDANTE SCS",
+    "anios_antiguedad": 23,
+    "zona_porcentaje": 2,
+    "zona_clase": 2,
+    "zona_cargo_base": "SUB-OFICIAL SUB-AYUDANTE",
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "7",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "37",
+    "agrupamiento": "1",
+    "tramo": "01",
+    "subtramo": "02"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 2,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "26",
+     "descripcion": "Suplemento de Riesgo",
+     "valor": 30,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "23",
+     "descripcion": "Resp. Penitenciaria",
+     "valor": 0,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "27",
+     "descripcion": "Riesgo Especial Penitenciario",
+     "valor": 25,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 55.05,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado / Posgrado o Resp. Profesional",
+     "valor": 0,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Sec. y Pre-Grado",
+     "valor": 0,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 2,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 23,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 37,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "51",
+     "descripcion": "Adicional Personal de Seguridad 2022",
+     "valor": 21,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "52",
+     "descripcion": "A. Fortalecimiento de la Labor Polic",
+     "valor": 98,
+     "aplica": true,
+     "orden": 14
+    },
+    {
+     "codigo": "100",
+     "descripcion": "Tiempo Mínimo en el Grado",
+     "valor": null,
+     "aplica": false,
+     "orden": 15
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": true,
+     "orden": 16
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Refrigerio Penitenciario",
+     "valor": null,
+     "aplica": true,
+     "orden": 17
+    },
+    {
+     "codigo": "74",
+     "descripcion": "Aumento 2004",
+     "valor": null,
+     "aplica": true,
+     "orden": 18
+    }
+   ],
+   "zonas": [
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2023-04-01",
+     "fecha_hasta": "2025-09-30"
+    }
+   ],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      23,
+      9,
+      3
+     ],
+     "subtotal": [
+      25,
+      0,
+      3
+     ],
+     "corresponde": [
+      25,
+      0,
+      3
+     ],
+     "antiguedad_final": 25
+    },
+    "porcentaje_retiro": 100,
+    "conceptos": {
+     "10": 160415.19,
+     "26": 48124.56,
+     "23": 0,
+     "27": 40103.8,
+     "58": 254081.43,
+     "24": 0,
+     "31": 0,
+     "83": 3208.3,
+     "80": 73790.99,
+     "90": 214497.98,
+     "91": 79422.22,
+     "92": 87364.45,
+     "93": 182591.69,
+     "51": 96924.8,
+     "52": 157206.88,
+     "65": 18777.53,
+     "100": 0,
+     "73": 14083.19,
+     "74": 7041.57
+    },
+    "bases": {
+     "23": 461546.65,
+     "58": 461546.65,
+     "31": 160415.19,
+     "83": 160415.19,
+     "51": 461546.65
+    },
+    "total_haberes": 1437634.56,
+    "haber_retiro": 1437634.56,
+    "zona": {
+     "filas": [
+      0.016
+     ],
+     "total": 0.016,
+     "aplicado": 2,
+     "base": 160415.19
+    }
+   },
+   "notas": []
+  },
+  {
+   "hoja": "DIAZ MARTINEZ",
+   "escalafon": "penitenciario",
+   "periodo": "2022-07",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2022-02805344- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "22412285",
+    "cuil": null,
+    "apellido": "DIAZ MARTINEZ",
+    "nombre": "MARCELO FABIAN",
+    "escalafon": "penitenciario",
+    "tipo_personal": "superior",
+    "grado": "OFICIAL SUB-ALCAIDE",
+    "cuerpo": "SCS",
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "2001-10-01",
+    "fecha_renuncia_condicionada": "2022-07-01",
+    "cuadro_servicio_desde": "2001-10-01",
+    "cuadro_servicio_hasta": "2022-05-30"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 20,
+     "meses": 8,
+     "dias": 0
+    },
+    {
+     "concepto": "hasta_renuncia",
+     "anios": 0,
+     "meses": 1,
+     "dias": 0
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 3,
+     "meses": 5,
+     "dias": 0
+    },
+    {
+     "concepto": "beneficio_titulo",
+     "anios": 1,
+     "meses": 0,
+     "dias": 0
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 11,
+    "grado": "OFICIAL SUB-ALCAIDE",
+    "anios_antiguedad": 21,
+    "zona_porcentaje": 3,
+    "zona_clase": 11,
+    "zona_cargo_base": "SUB-ALCAIDE",
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "7",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "37",
+    "agrupamiento": "1",
+    "tramo": "02",
+    "subtramo": "04"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 11,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "26",
+     "descripcion": "Insalubridad",
+     "valor": 30,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "23",
+     "descripcion": "Resp. Penitenciaria",
+     "valor": 0,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "27",
+     "descripcion": "Riesgo Penitenciario",
+     "valor": 25,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 55.05,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado / Posgrado o Resp. Profesional",
+     "valor": 0,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Técnico Universitario o Secundario",
+     "valor": 15,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 3,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 21,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 10,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "50",
+     "descripcion": "Adicional Paritaria 2022",
+     "valor": null,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "51",
+     "descripcion": "Adicional Personal de Seguridad 2022",
+     "valor": null,
+     "aplica": true,
+     "orden": 14
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": true,
+     "orden": 15
+    },
+    {
+     "codigo": "66",
+     "descripcion": "Adic. Rem. 01/03/2010",
+     "valor": null,
+     "aplica": true,
+     "orden": 16
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 17
+    },
+    {
+     "codigo": "74",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 18
+    },
+    {
+     "codigo": "75",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 19
+    }
+   ],
+   "zonas": [
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2017-04-01",
+     "fecha_hasta": "2021-03-31"
+    }
+   ],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      20,
+      9,
+      0
+     ],
+     "subtotal": [
+      25,
+      2,
+      0
+     ],
+     "corresponde": [
+      25,
+      2,
+      0
+     ],
+     "antiguedad_final": 25
+    },
+    "porcentaje_retiro": 85,
+    "conceptos": {
+     "10": 37805.36,
+     "26": 11341.61,
+     "23": 0,
+     "27": 9451.34,
+     "58": 30586.83,
+     "24": 0,
+     "31": 5670.8,
+     "83": 1134.16,
+     "80": 15878.25,
+     "90": 11186.83,
+     "91": 12305.52,
+     "92": 13536.07,
+     "93": 28290.39,
+     "50": 7200,
+     "51": 5556.19,
+     "65": 2494.89,
+     "66": 1247.48,
+     "73": 1871.19,
+     "74": 1871.19,
+     "75": 1247.44
+    },
+    "bases": {
+     "23": 55561.9,
+     "58": 55561.9,
+     "31": 37805.36,
+     "83": 37805.36,
+     "51": 55561.9
+    },
+    "total_haberes": 198675.54,
+    "haber_retiro": 168874.21,
+    "zona": {
+     "filas": [
+      0.0267
+     ],
+     "total": 0.0267,
+     "aplicado": 3,
+     "base": 37805.36
+    }
+   },
+   "notas": []
+  },
+  {
+   "hoja": "FLORES CORVALAN",
+   "escalafon": "penitenciario",
+   "periodo": "2025-09",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2025-06781048- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "24598757",
+    "cuil": null,
+    "apellido": "FLORES CORVALAN",
+    "nombre": "GUSTAVO FEDERICO",
+    "escalafon": "penitenciario",
+    "tipo_personal": "superior",
+    "grado": "OFICIAL PREFECTO",
+    "cuerpo": "SCPA",
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "2005-02-15",
+    "fecha_renuncia_condicionada": "2025-12-01",
+    "cuadro_servicio_desde": "2005-02-15",
+    "cuadro_servicio_hasta": "2025-08-30"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 20,
+     "meses": 6,
+     "dias": 16
+    },
+    {
+     "concepto": "hasta_renuncia",
+     "anios": 0,
+     "meses": 3,
+     "dias": 0
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 3,
+     "meses": 9,
+     "dias": 14
+    },
+    {
+     "concepto": "beneficio_titulo",
+     "anios": 2,
+     "meses": 6,
+     "dias": 0
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 14,
+    "grado": "OFICIAL PREFECTO",
+    "anios_antiguedad": 23,
+    "zona_porcentaje": 3,
+    "zona_clase": 13,
+    "zona_cargo_base": "OFICIAL ALCAIDE MAYOR",
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "7",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "37",
+    "agrupamiento": "2",
+    "tramo": "02",
+    "subtramo": "07"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 14,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "26",
+     "descripcion": "Suplemento de Riesgo",
+     "valor": 30,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "23",
+     "descripcion": "Resp. Penitenciaria",
+     "valor": 66.4,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "27",
+     "descripcion": "Riesgo Especial Penitenciario",
+     "valor": 15,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 43.25,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado / Posgrado o Resp. Profesional",
+     "valor": 20,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Sec. y Pre-Grado",
+     "valor": 0,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 3,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 23,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 37,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "51",
+     "descripcion": "Adicional Personal de Seguridad 2022",
+     "valor": 21,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "52",
+     "descripcion": "A. Fortalecimiento de la Labor Polic",
+     "valor": 98,
+     "aplica": true,
+     "orden": 14
+    },
+    {
+     "codigo": "100",
+     "descripcion": "Tiempo Mínimo en el Grado",
+     "valor": null,
+     "aplica": false,
+     "orden": 15
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": false,
+     "orden": 16
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Refrigerio Penitenciario",
+     "valor": null,
+     "aplica": true,
+     "orden": 17
+    },
+    {
+     "codigo": "74",
+     "descripcion": "Aumento 2004",
+     "valor": null,
+     "aplica": true,
+     "orden": 18
+    }
+   ],
+   "zonas": [
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2016-01-01",
+     "fecha_hasta": "2020-11-30"
+    },
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2022-04-01",
+     "fecha_hasta": "2022-08-30"
+    },
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2024-05-01",
+     "fecha_hasta": "2025-11-30"
+    }
+   ],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      20,
+      9,
+      16
+     ],
+     "subtotal": [
+      27,
+      1,
+      0
+     ],
+     "corresponde": [
+      27,
+      1,
+      0
+     ],
+     "antiguedad_final": 27
+    },
+    "porcentaje_retiro": 91,
+    "conceptos": {
+     "10": 423496.78,
+     "26": 127049.03,
+     "23": 306466.98,
+     "27": 63524.52,
+     "58": 199618.93,
+     "24": 92309.33,
+     "31": 0,
+     "83": 11874.12,
+     "80": 194808.52,
+     "90": 525084.83,
+     "91": 194423.3,
+     "92": 213865.63,
+     "93": 446979.17,
+     "51": 96924.8,
+     "52": 415026.84,
+     "65": 0,
+     "100": 0,
+     "73": 14083.19,
+     "74": 7041.57
+    },
+    "bases": {
+     "23": 461546.65,
+     "58": 461546.65,
+     "24": 461546.65,
+     "31": 423496.78,
+     "83": 395803.98,
+     "51": 461546.65
+    },
+    "total_haberes": 3332577.53,
+    "haber_retiro": 3032645.55,
+    "zona": {
+     "filas": [
+      0.0267,
+      0,
+      0.0067
+     ],
+     "total": 0.0333,
+     "aplicado": 3,
+     "base": 395803.98
+    }
+   },
+   "notas": []
+  },
+  {
+   "hoja": "GARAY GOMEZ",
+   "escalafon": "penitenciario",
+   "periodo": "2022-07",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2021-05102915- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "24263042",
+    "cuil": null,
+    "apellido": "GARAY GOMEZ",
+    "nombre": "MARCELO RAMON",
+    "escalafon": "penitenciario",
+    "tipo_personal": "superior",
+    "grado": "OFICIAL ADJUTOR",
+    "cuerpo": "SCS",
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "2005-03-14",
+    "fecha_renuncia_condicionada": "2022-04-01",
+    "cuadro_servicio_desde": "2005-03-14",
+    "cuadro_servicio_hasta": "2021-09-30"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 16,
+     "meses": 6,
+     "dias": 16
+    },
+    {
+     "concepto": "hasta_renuncia",
+     "anios": 0,
+     "meses": 6,
+     "dias": 0
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 7,
+     "meses": 7,
+     "dias": 0
+    },
+    {
+     "concepto": "beneficio_titulo",
+     "anios": 1,
+     "meses": 0,
+     "dias": 0
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 9,
+    "grado": "OFICIAL ADJUTOR",
+    "anios_antiguedad": 17,
+    "zona_porcentaje": 3,
+    "zona_clase": 3,
+    "zona_cargo_base": "SUB-OFICIAL AYUDANTE",
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "7",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "37",
+    "agrupamiento": "1",
+    "tramo": "02",
+    "subtramo": "02"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 9,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "26",
+     "descripcion": "Insalubridad",
+     "valor": 30,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "23",
+     "descripcion": "Resp. Penitenciaria",
+     "valor": 0,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "27",
+     "descripcion": "Riesgo Penitenciario",
+     "valor": 20,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 55.05,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado / Posgrado o Resp. Profesional",
+     "valor": 0,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Técnico Universitario o Secundario",
+     "valor": 15,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 3,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 17,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 10,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "50",
+     "descripcion": "Adicional Paritaria 2022",
+     "valor": null,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": true,
+     "orden": 14
+    },
+    {
+     "codigo": "66",
+     "descripcion": "Adic. Rem. 01/03/2010",
+     "valor": null,
+     "aplica": true,
+     "orden": 15
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 16
+    },
+    {
+     "codigo": "74",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 17
+    },
+    {
+     "codigo": "75",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 18
+    }
+   ],
+   "zonas": [
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2011-08-01",
+     "fecha_hasta": "2016-07-30"
+    },
+    {
+     "dependencia": "COLONIA GRANJA PENAL",
+     "porcentaje_zona": 10,
+     "fecha_desde": "2021-10-01",
+     "fecha_hasta": "2022-03-30"
+    }
+   ],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      17,
+      0,
+      16
+     ],
+     "subtotal": [
+      25,
+      7,
+      16
+     ],
+     "corresponde": [
+      25,
+      7,
+      16
+     ],
+     "antiguedad_final": 26
+    },
+    "porcentaje_retiro": 88,
+    "conceptos": {
+     "10": 27248.58,
+     "26": 8174.57,
+     "23": 0,
+     "27": 5449.72,
+     "58": 30586.83,
+     "24": 0,
+     "31": 4087.29,
+     "83": 600.77,
+     "80": 9264.52,
+     "90": 8541.23,
+     "91": 9395.35,
+     "92": 10334.88,
+     "93": 21599.91,
+     "50": 7200,
+     "65": 2494.89,
+     "66": 1247.48,
+     "73": 1871.19,
+     "74": 1871.19,
+     "75": 1247.44
+    },
+    "bases": {
+     "23": 55561.9,
+     "58": 55561.9,
+     "31": 27248.58,
+     "83": 20025.51
+    },
+    "total_haberes": 151215.82,
+    "haber_retiro": 133069.92,
+    "zona": {
+     "filas": [
+      0.0333,
+      0
+     ],
+     "total": 0.0333,
+     "aplicado": 3,
+     "base": 20025.51
+    }
+   },
+   "notas": [
+    "Organismo: ANSES - Unidad de Atención Trámites Interjurisdiccionales (Resol. D.E. N° 540/07)",
+    "Visado: VISADO NEGATIVO N° __/22",
+    "Fecha: Buenos Aires, 26 de octubre de 2022",
+    "A: Oficina Técnica Previsional Mendoza (OTP)",
+    "De: Unidad de Atención Trámites Interjurisdiccionales - Sra. Degiuseppe María Victoria",
+    "Ref.: S/ Expediente N° 045-20-24263042-5-846-1 - Titular: GARAY MARCELO",
+    "Texto: Analizadas las actuaciones remitidas a la luz de las pautas establecidas para el visado de expedientes del Régimen Policial y Penitenciario Provincial mediante la Resolución D.E.-A N° 540/07, se procede a la devolución de las mismas por la razón que a continuación se explayó.",
+    "Observación: Puntualmente, se discrepa con el cálculo de la liquidación del mensual julio 2022, el cual se observa que no se liquidó el ítem título que el Sr. Garay Marcelo venía percibiendo en su recibo de haberes, además se aplicó el beneficio del art. 94 inc d de la Ley 21965. Por lo tanto, deberá ratificarse o rectificarse conforme lo expuesto.",
+    "Cierre: Efectuadas las correcciones señaladas remítase nuevamente a fin de continuar con el trámite regular de visado.",
+    "Código: A012637 - 26/10/2022 14:32"
+   ]
+  },
+  {
+   "hoja": "GODOY ZAPATA",
+   "escalafon": "penitenciario",
+   "periodo": "2022-04",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2022-00368868- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "14311104",
+    "cuil": null,
+    "apellido": "GODOY ZAPATA",
+    "nombre": "NANCY ALICIA",
+    "escalafon": "penitenciario",
+    "tipo_personal": "subalterno",
+    "grado": "SUB-OFICIAL SUB-AYUDANTE SCPYA",
+    "cuerpo": null,
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "2005-06-06",
+    "fecha_renuncia_condicionada": "2022-04-01",
+    "cuadro_servicio_desde": "2005-06-06",
+    "cuadro_servicio_hasta": "2022-02-28"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 16,
+     "meses": 8,
+     "dias": 24
+    },
+    {
+     "concepto": "hasta_renuncia",
+     "anios": 0,
+     "meses": 1,
+     "dias": 2
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 9,
+     "meses": 8,
+     "dias": 12
+    },
+    {
+     "concepto": "suspensiones",
+     "anios": 0,
+     "meses": 0,
+     "dias": 15
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 2,
+    "grado": "SUB-OFICIAL SUB-AYUDANTE SCPYA",
+    "anios_antiguedad": 26,
+    "zona_porcentaje": 2,
+    "zona_clase": 1,
+    "zona_cargo_base": "AGENTE",
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "7",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "37",
+    "agrupamiento": "2",
+    "tramo": "01",
+    "subtramo": "02"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 2,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "26",
+     "descripcion": "Insalubridad",
+     "valor": 30,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "23",
+     "descripcion": "Resp. Penitenciaria",
+     "valor": 0,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "27",
+     "descripcion": "Riesgo Penitenciario",
+     "valor": 5,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 43.25,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Resp. Profesional",
+     "valor": 0,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título",
+     "valor": 10,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 2,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 26,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 10,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "50",
+     "descripcion": "Adicional Paritaria 2022",
+     "valor": null,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": false,
+     "orden": 14
+    },
+    {
+     "codigo": "66",
+     "descripcion": "Adic. Rem. 01/03/2010",
+     "valor": null,
+     "aplica": true,
+     "orden": 15
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 16
+    },
+    {
+     "codigo": "74",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 17
+    },
+    {
+     "codigo": "75",
+     "descripcion": "Adicional Aum 07/11",
+     "valor": null,
+     "aplica": true,
+     "orden": 18
+    }
+   ],
+   "zonas": [
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2007-09-01",
+     "fecha_hasta": "2009-10-31"
+    }
+   ],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      16,
+      9,
+      26
+     ],
+     "subtotal": [
+      26,
+      6,
+      8
+     ],
+     "corresponde": [
+      26,
+      5,
+      23
+     ],
+     "antiguedad_final": 26
+    },
+    "porcentaje_retiro": 100,
+    "conceptos": {
+     "10": 18068.05,
+     "26": 5420.42,
+     "23": 0,
+     "27": 903.4,
+     "58": 22300.32,
+     "24": 0,
+     "31": 1806.81,
+     "83": 340.74,
+     "80": 9395.39,
+     "90": 5823.51,
+     "91": 6405.86,
+     "92": 7046.45,
+     "93": 14727.08,
+     "50": 7200,
+     "65": 0,
+     "66": 1157.66,
+     "73": 1736.47,
+     "74": 1736.47,
+     "75": 1157.63
+    },
+    "bases": {
+     "23": 51561.44,
+     "58": 51561.44,
+     "24": 44364.37,
+     "83": 17036.79
+    },
+    "total_haberes": 105226.25,
+    "haber_retiro": 105226.25,
+    "zona": {
+     "filas": [
+      0.016
+     ],
+     "total": 0.016,
+     "aplicado": 2,
+     "base": 17036.79
+    }
+   },
+   "notas": []
+  },
+  {
+   "hoja": "GONZALEZ SANTIBAÑEZ",
+   "escalafon": "penitenciario",
+   "periodo": "2025-09",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2025-06922415- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "24865305",
+    "cuil": null,
+    "apellido": "GONZALEZ SANTIBAÑEZ",
+    "nombre": "MANUEL ALEJANDRO",
+    "escalafon": "penitenciario",
+    "tipo_personal": "superior",
+    "grado": "OFICIAL ALCAIDE",
+    "cuerpo": "SCPA",
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "2004-05-30",
+    "fecha_renuncia_condicionada": "2025-10-01",
+    "cuadro_servicio_desde": "2004-05-30",
+    "cuadro_servicio_hasta": "2025-08-30"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 21,
+     "meses": 3,
+     "dias": 0
+    },
+    {
+     "concepto": "hasta_renuncia",
+     "anios": 0,
+     "meses": 1,
+     "dias": 0
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 8,
+     "meses": 10,
+     "dias": 16
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 12,
+    "grado": "OFICIAL ALCAIDE",
+    "anios_antiguedad": 29,
+    "zona_porcentaje": 7,
+    "zona_clase": 10,
+    "zona_cargo_base": "OFICIAL ADJUTOR PRINCIPAL",
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "7",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "37",
+    "agrupamiento": "2",
+    "tramo": "02",
+    "subtramo": "05"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 12,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "26",
+     "descripcion": "Suplemento de Riesgo",
+     "valor": 30,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "23",
+     "descripcion": "Resp. Penitenciaria",
+     "valor": 46,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "27",
+     "descripcion": "Riesgo Especial Penitenciario",
+     "valor": 15,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 43.25,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado / Posgrado o Resp. Profesional",
+     "valor": 0,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Sec. y Pre-Grado",
+     "valor": 15,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 7,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 29,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 37,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "51",
+     "descripcion": "Adicional Personal de Seguridad 2022",
+     "valor": 21,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "52",
+     "descripcion": "A. Fortalecimiento de la Labor Polic",
+     "valor": 98,
+     "aplica": true,
+     "orden": 14
+    },
+    {
+     "codigo": "100",
+     "descripcion": "Tiempo Mínimo en el Grado",
+     "valor": null,
+     "aplica": false,
+     "orden": 15
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": false,
+     "orden": 16
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Refrigerio Penitenciario",
+     "valor": null,
+     "aplica": true,
+     "orden": 17
+    },
+    {
+     "codigo": "74",
+     "descripcion": "Aumento 2004",
+     "valor": null,
+     "aplica": true,
+     "orden": 18
+    }
+   ],
+   "zonas": [
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2007-08-01",
+     "fecha_hasta": "2018-06-30"
+    },
+    {
+     "dependencia": "ALMA FUERTE",
+     "porcentaje_zona": 20,
+     "fecha_desde": "2025-03-01",
+     "fecha_hasta": "2025-09-30"
+    }
+   ],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      21,
+      4,
+      0
+     ],
+     "subtotal": [
+      30,
+      2,
+      16
+     ],
+     "corresponde": [
+      30,
+      2,
+      16
+     ],
+     "antiguedad_final": 30
+    },
+    "porcentaje_retiro": 100,
+    "conceptos": {
+     "10": 354264.78,
+     "26": 106279.43,
+     "23": 212311.46,
+     "27": 53139.72,
+     "58": 199618.93,
+     "24": 0,
+     "31": 53139.72,
+     "83": 19306.13,
+     "80": 205473.57,
+     "90": 445307.48,
+     "91": 164884.12,
+     "92": 181372.53,
+     "93": 379068.6,
+     "51": 96924.8,
+     "52": 347179.49,
+     "65": 0,
+     "100": 0,
+     "73": 14083.19,
+     "74": 7041.57
+    },
+    "bases": {
+     "23": 461546.65,
+     "58": 461546.65,
+     "31": 354264.78,
+     "83": 275801.85,
+     "51": 461546.65
+    },
+    "total_haberes": 2839395.52,
+    "haber_retiro": 2839395.52,
+    "zona": {
+     "filas": [
+      0.0667,
+      0
+     ],
+     "total": 0.0667,
+     "aplicado": 7,
+     "base": 275801.85
+    }
+   },
+   "notas": []
+  },
+  {
+   "hoja": "HERNANDEZ ROMERO",
+   "escalafon": "policia",
+   "periodo": "2026-05",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2026-05327145- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "24740438",
+    "cuil": null,
+    "apellido": "HERNANDEZ ROMERO",
+    "nombre": "VICTOR ARIEL",
+    "escalafon": "policia",
+    "tipo_personal": "subalterno",
+    "grado": "AUXILIAR SEGUNDO",
+    "cuerpo": "Cuerpo de Comando",
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "2010-03-22",
+    "fecha_renuncia_condicionada": "2026-08-01",
+    "cuadro_servicio_desde": "2010-03-22",
+    "cuadro_servicio_hasta": "2026-07-31"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 16,
+     "meses": 4,
+     "dias": 9
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 8,
+     "meses": 4,
+     "dias": 1
+    },
+    {
+     "concepto": "suspensiones",
+     "anios": 0,
+     "meses": 0,
+     "dias": 23
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 23,
+    "grado": "AUXILIAR SEGUNDO",
+    "anios_antiguedad": 23,
+    "zona_porcentaje": 0,
+    "zona_clase": 0,
+    "zona_cargo_base": null,
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "06",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "36",
+    "agrupamiento": "1",
+    "tramo": "01",
+    "subtramo": "12"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 23,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 66,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "59",
+     "descripcion": "Riesgo Especial",
+     "valor": 20,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado o Posgrado",
+     "valor": 0,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Sec y Pre-Grado",
+     "valor": 0,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 0,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 23,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 37,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "52",
+     "descripcion": "A. Fortalecimiento de la Labor Polic.",
+     "valor": 98,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "51",
+     "descripcion": "Adicional Personal de Seguridad 2022",
+     "valor": 21,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Comp. Policial",
+     "valor": null,
+     "aplica": true,
+     "orden": 14
+    }
+   ],
+   "zonas": [],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      16,
+      4,
+      9
+     ],
+     "subtotal": [
+      24,
+      8,
+      10
+     ],
+     "corresponde": [
+      24,
+      7,
+      17
+     ],
+     "antiguedad_final": 25
+    },
+    "porcentaje_retiro": 100,
+    "conceptos": {
+     "10": 194476.35,
+     "58": 349589.88,
+     "59": 105936.33,
+     "24": 0,
+     "31": 0,
+     "83": 0,
+     "80": 89459.12,
+     "90": 273600.82,
+     "91": 101306.25,
+     "92": 111436.88,
+     "93": 232903.07,
+     "51": 111233.14,
+     "52": 190586.82,
+     "65": 21234.4,
+     "73": 15925.8
+    },
+    "bases": {
+     "58": 529681.64,
+     "51": 529681.64
+    },
+    "total_haberes": 1797688.87,
+    "haber_retiro": 1797688.87,
+    "zona": {
+     "filas": [],
+     "total": null,
+     "aplicado": 0,
+     "base": null
+    }
+   },
+   "notas": [
+    "* NO SE INCLUYE EL SUPLEMENTO ZONA DEBIDO A QUE NO ALCANZA EL MÍNIMO REQUERIDO DEL 1%"
+   ]
+  },
+  {
+   "hoja": "OLMEDO",
+   "escalafon": "policia",
+   "periodo": "2026-05",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2026-04303886- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "28179998",
+    "cuil": "27281799989",
+    "apellido": "OLMEDO",
+    "nombre": "CAROLINA DEL CARMEN",
+    "escalafon": "policia",
+    "tipo_personal": "superior",
+    "grado": "OFICIAL PRINCIPAL",
+    "cuerpo": null,
+    "condicion": "PP / PERSONAL POLICIAL",
+    "familia": "OFICIALES",
+    "fecha_ingreso": "2003-11-14",
+    "fecha_renuncia_condicionada": "2026-06-01",
+    "cuadro_servicio_desde": "2003-11-14",
+    "cuadro_servicio_hasta": "2026-05-31"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 22,
+     "meses": 6,
+     "dias": 17
+    },
+    {
+     "concepto": "beneficio_titulo",
+     "anios": 2,
+     "meses": 0,
+     "dias": 0
+    },
+    {
+     "concepto": "suspensiones",
+     "anios": 0,
+     "meses": 0,
+     "dias": 2
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 15,
+    "grado": "OFICIAL PRINCIPAL",
+    "anios_antiguedad": 22,
+    "zona_porcentaje": 3,
+    "zona_clase": 14,
+    "zona_cargo_base": "OFICIAL INSPECTOR - CLASE 14",
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "06",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "36",
+    "agrupamiento": "1",
+    "tramo": "02",
+    "subtramo": "06"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 15,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 66,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "59",
+     "descripcion": "Riesgo Especial",
+     "valor": 20,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado o Posgrado",
+     "valor": 20,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Sec./Pre-Grado o Técnico Universitario",
+     "valor": 0,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 3,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 22,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adicional Fuerza Seguridad",
+     "valor": 37,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/05",
+     "valor": 10,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/07",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/08",
+     "valor": 19,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "51",
+     "descripcion": "Adicional Personal Seguridad 2022",
+     "valor": 21,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "52",
+     "descripcion": "Fortalecimiento Labor Policial",
+     "valor": 98,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional Seguridad Ley 7666",
+     "valor": null,
+     "aplica": true,
+     "orden": 14
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Compensación Policial",
+     "valor": null,
+     "aplica": true,
+     "orden": 15
+    }
+   ],
+   "zonas": [
+    {
+     "dependencia": "COMISARIA 41º LA CONSULTA",
+     "porcentaje_zona": 10,
+     "fecha_desde": "2009-08-13",
+     "fecha_hasta": "2012-04-13"
+    },
+    {
+     "dependencia": "SUBCRIA. VISTA FLORES",
+     "porcentaje_zona": 10,
+     "fecha_desde": "2018-03-12",
+     "fecha_hasta": "2019-12-26"
+    },
+    {
+     "dependencia": "SUBCRIA. VISTA FLORES",
+     "porcentaje_zona": 10,
+     "fecha_desde": "2019-12-27",
+     "fecha_hasta": "2025-03-11"
+    }
+   ],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      22,
+      6,
+      17
+     ],
+     "subtotal": [
+      24,
+      6,
+      17
+     ],
+     "corresponde": [
+      24,
+      6,
+      15
+     ],
+     "antiguedad_final": 25
+    },
+    "porcentaje_retiro": 85,
+    "conceptos": {
+     "10": 316303.13,
+     "58": 349589.88,
+     "23": 0,
+     "59": 105936.33,
+     "24": 105936.33,
+     "31": 0,
+     "83": 7741.14,
+     "80": 139173.38,
+     "90": 379131.67,
+     "91": 140381.19,
+     "92": 154419.3,
+     "93": 322736.35,
+     "51": 111233.14,
+     "52": 309977.07,
+     "65": 21234.4,
+     "73": 15925.8
+    },
+    "bases": {
+     "58": 529681.64,
+     "23": 529681.64,
+     "24": 529681.64,
+     "83": 258038.15,
+     "51": 529681.64
+    },
+    "total_haberes": 2479719.11,
+    "haber_retiro": 2107761.24,
+    "zona": {
+     "filas": [
+      0.0067,
+      0.0033,
+      0.0167
+     ],
+     "total": 0.0267,
+     "aplicado": 3,
+     "base": 258038.15
+    }
+   },
+   "notas": []
+  },
+  {
+   "hoja": "TOLIN BERTONA",
+   "escalafon": "penitenciario",
+   "periodo": "2025-09",
+   "asunto": "RENUNCIA CONDICIONADA",
+   "causante": {
+    "expediente": "EX-2025-06563552- -GDEMZA-OTEPRE#MGTYJ",
+    "dni": "29788132",
+    "cuil": null,
+    "apellido": "TOLIN BERTONA",
+    "nombre": "JESICA DANIELA",
+    "escalafon": "penitenciario",
+    "tipo_personal": "superior",
+    "grado": "OFICIAL ADJUTOR PRINCIPAL",
+    "cuerpo": "SCPA",
+    "condicion": null,
+    "familia": null,
+    "fecha_ingreso": "2010-08-17",
+    "fecha_renuncia_condicionada": "2025-10-01",
+    "cuadro_servicio_desde": "2010-08-17",
+    "cuadro_servicio_hasta": "2025-08-30"
+   },
+   "computo": [
+    {
+     "concepto": "cuadro_servicio",
+     "anios": 15,
+     "meses": 0,
+     "dias": 14
+    },
+    {
+     "concepto": "hasta_renuncia",
+     "anios": 0,
+     "meses": 1,
+     "dias": 0
+    },
+    {
+     "concepto": "servicios_adicionales",
+     "anios": 2,
+     "meses": 11,
+     "dias": 8
+    }
+   ],
+   "cargo": {
+    "secuencia": 1,
+    "porcentaje_secuencia": 100,
+    "clase": 10,
+    "grado": "OFICIAL ADJUTOR PRINCIPAL",
+    "anios_antiguedad": 14,
+    "zona_porcentaje": 0,
+    "zona_clase": 0,
+    "zona_cargo_base": null,
+    "caracter": "1",
+    "jurisdiccion": "05",
+    "unidad_organizativa": "7",
+    "finalidad": null,
+    "funcion": null,
+    "regimen_salarial": "37",
+    "agrupamiento": "2",
+    "tramo": "02",
+    "subtramo": "03"
+   },
+   "encasillamiento": [
+    {
+     "codigo": "10",
+     "descripcion": "Clase",
+     "valor": 10,
+     "aplica": true,
+     "orden": 0
+    },
+    {
+     "codigo": "26",
+     "descripcion": "Suplemento de Riesgo",
+     "valor": 30,
+     "aplica": true,
+     "orden": 1
+    },
+    {
+     "codigo": "23",
+     "descripcion": "Resp. Penitenciaria",
+     "valor": 0,
+     "aplica": true,
+     "orden": 2
+    },
+    {
+     "codigo": "27",
+     "descripcion": "Riesgo Especial Penitenciario",
+     "valor": 15,
+     "aplica": true,
+     "orden": 3
+    },
+    {
+     "codigo": "58",
+     "descripcion": "Recargo de Servicio",
+     "valor": 43.25,
+     "aplica": true,
+     "orden": 4
+    },
+    {
+     "codigo": "24",
+     "descripcion": "Título de Grado / Posgrado o Resp. Profesional",
+     "valor": 20,
+     "aplica": true,
+     "orden": 5
+    },
+    {
+     "codigo": "31",
+     "descripcion": "Título Sec. y Pre-Grado",
+     "valor": 0,
+     "aplica": true,
+     "orden": 6
+    },
+    {
+     "codigo": "83",
+     "descripcion": "Zona",
+     "valor": 0,
+     "aplica": true,
+     "orden": 7
+    },
+    {
+     "codigo": "80",
+     "descripcion": "Antigüedad",
+     "valor": 14,
+     "aplica": true,
+     "orden": 8
+    },
+    {
+     "codigo": "90",
+     "descripcion": "Adic. Fuerz. Seg.",
+     "valor": 37,
+     "aplica": true,
+     "orden": 9
+    },
+    {
+     "codigo": "91",
+     "descripcion": "Aumento 07/2005",
+     "valor": 10,
+     "aplica": true,
+     "orden": 10
+    },
+    {
+     "codigo": "92",
+     "descripcion": "Aumento 09/2007",
+     "valor": 10,
+     "aplica": true,
+     "orden": 11
+    },
+    {
+     "codigo": "93",
+     "descripcion": "Aumento 03/2008",
+     "valor": 19,
+     "aplica": true,
+     "orden": 12
+    },
+    {
+     "codigo": "51",
+     "descripcion": "Adicional Personal de Seguridad 2022",
+     "valor": 21,
+     "aplica": true,
+     "orden": 13
+    },
+    {
+     "codigo": "52",
+     "descripcion": "A. Fortalecimiento de la Labor Polic",
+     "valor": 98,
+     "aplica": true,
+     "orden": 14
+    },
+    {
+     "codigo": "100",
+     "descripcion": "Tiempo Mínimo en el Grado",
+     "valor": null,
+     "aplica": false,
+     "orden": 15
+    },
+    {
+     "codigo": "65",
+     "descripcion": "Adicional LEY 7666",
+     "valor": null,
+     "aplica": false,
+     "orden": 16
+    },
+    {
+     "codigo": "73",
+     "descripcion": "Refrigerio Penitenciario",
+     "valor": null,
+     "aplica": true,
+     "orden": 17
+    },
+    {
+     "codigo": "74",
+     "descripcion": "Aumento 2004",
+     "valor": null,
+     "aplica": true,
+     "orden": 18
+    }
+   ],
+   "zonas": [],
+   "esperado": {
+    "computo": {
+     "total_servicios": [
+      15,
+      1,
+      14
+     ],
+     "subtotal": [
+      18,
+      0,
+      22
+     ],
+     "corresponde": [
+      18,
+      0,
+      22
+     ],
+     "antiguedad_final": 18
+    },
+    "porcentaje_retiro": 59,
+    "conceptos": {
+     "10": 275801.85,
+     "26": 82740.56,
+     "23": 0,
+     "27": 41370.28,
+     "58": 199618.93,
+     "24": 92309.33,
+     "31": 0,
+     "83": 0,
+     "80": 77224.52,
+     "90": 284554.22,
+     "91": 105361.97,
+     "92": 115898.16,
+     "93": 242227.16,
+     "51": 96924.8,
+     "52": 270285.82,
+     "65": 0,
+     "100": 0,
+     "73": 14083.19,
+     "74": 7041.57
+    },
+    "bases": {
+     "23": 461546.65,
+     "58": 461546.65,
+     "24": 461546.65,
+     "31": 275801.85,
+     "51": 461546.65
+    },
+    "total_haberes": 1905442.35,
+    "haber_retiro": 1124210.98,
+    "zona": {
+     "filas": [],
+     "total": null,
+     "aplicado": 0,
+     "base": null
+    }
+   },
+   "notas": [
+    "* NO SE INCLUYE EL SUPLEMENTO ZONA DEBIDO A QUE NO ALCANZA EL MÍNIMO REQUERIDO DEL 1%"
+   ]
+  }
+ ]
+}
